@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cxr"
+version = "0.1.0"
+description = "MLOps pipeline for chest X-ray classification (NORMAL / PNEUMONIA)"
+requires-python = ">=3.11"
+# Dependencies are listed in requirements.txt (torch is installed separately).
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
