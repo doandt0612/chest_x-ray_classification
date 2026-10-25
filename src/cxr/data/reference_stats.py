@@ -7,7 +7,7 @@
 
 Writes data/reference/stats.json (committed) and data/interim/train_image_stats.csv.
 
-Usage: python -m cxr.data.reference_stats --config configs/data.yaml
+Usage: uv run python -m cxr.data.reference_stats --config configs/data.yaml
 """
 
 import argparse

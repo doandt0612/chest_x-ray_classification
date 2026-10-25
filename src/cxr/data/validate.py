@@ -4,7 +4,7 @@ Checks: image opens and decodes, valid label, size, aspect ratio, color mode
 (and whether an RGB image is actually grayscale), label distribution per split.
 Writes data/interim/validation.csv and reports/data_quality/validation_{summary.json,report.md}.
 
-Usage: python -m cxr.data.validate --config configs/data.yaml
+Usage: uv run python -m cxr.data.validate --config configs/data.yaml
 """
 
 import argparse

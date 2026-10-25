@@ -11,11 +11,27 @@ A reproducible MLOps pipeline for binary classification of chest X-ray images (N
 
 ## Installation
 
-<!-- TODO: fill in once the environment is finalized -->
+Requires [uv](https://docs.astral.sh/uv/). Python 3.11 is pinned in `.python-version`; uv downloads it if needed.
+
+```bash
+uv sync    # creates .venv/ from pyproject.toml + uv.lock (torch/torchvision: CUDA 12.6 build)
+```
+
+Run every Python command through uv, e.g. `uv run pytest`.
 
 ## Re-running the full pipeline
 
-<!-- TODO: 1–2 commands, e.g.: python scripts/run_pipeline.py --config configs/ -->
+Data pipeline (stages 1-5, settings in `configs/data.yaml`):
+
+```bash
+uv run python -m cxr.data.download         # fetch the pinned dataset revision, write manifest
+uv run python -m cxr.data.validate         # image and label checks
+uv run python -m cxr.data.dedup            # near-duplicates and patient groups
+uv run python -m cxr.data.split            # train / val / test -> data/processed/splits.csv
+uv run python -m cxr.data.reference_stats  # train-only reference stats -> data/reference/stats.json
+```
+
+<!-- TODO: training and evaluation stages; single entry point scripts/run_pipeline.py -->
 
 ## API
 

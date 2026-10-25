@@ -89,6 +89,21 @@ def test_exact_duplicates_dropped_from_pool_only():
     assert {test_ids[0], test_ids[1]} <= set(splits["image_id"])
 
 
+def test_exact_duplicate_triple_keeps_one_copy_even_if_first_is_flagged():
+    dedup, validation, _ = _data()
+    a, b, c = dedup.loc[dedup["split"] == "train", "image_id"].tolist()[:3]
+    pairs = pd.DataFrame(
+        {"image_id_a": [a, a, b], "image_id_b": [b, c, c], "exact": [True, True, True]}
+    )
+    splits, excluded = make_splits(dedup, validation, pairs, _cfg())
+    assert {a, b, c} & set(splits["image_id"]) == {a}
+    assert excluded["exact_duplicate"] == 2
+
+    validation.loc[validation["image_id"] == a, "too_small"] = True
+    splits, _ = make_splits(dedup, validation, pairs, _cfg(exclude_flags=["too_small"]))
+    assert {a, b, c} & set(splits["image_id"]) == {b}
+
+
 def test_exclude_flags_drop_from_pool_only():
     dedup, validation, pairs = _data()
     flagged = [dedup.loc[dedup["split"] == "train", "image_id"].iloc[0],

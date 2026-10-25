@@ -1,6 +1,6 @@
 """Stage 1: download the dataset at the pinned revision, extract images, write manifest.csv.
 
-Usage: python -m cxr.data.download --config configs/data.yaml
+Usage: uv run python -m cxr.data.download --config configs/data.yaml
 """
 
 import argparse
@@ -50,7 +50,8 @@ def extract_images(cfg: dict) -> pd.DataFrame:
                     ext = Path(source_filename).suffix.lower() or ".jpeg"
                     image_id = f"{split}_{idx:05d}"
                     out_path = out_dir / f"{image_id}{ext}"
-                    if not (out_path.exists() and out_path.stat().st_size == len(data)):
+                    # Compare content, not just size, so manifest sha256 always matches the file on disk.
+                    if not (out_path.exists() and out_path.read_bytes() == data):
                         out_path.write_bytes(data)
                     rows.append(
                         {

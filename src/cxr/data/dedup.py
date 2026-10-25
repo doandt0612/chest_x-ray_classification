@@ -8,7 +8,7 @@ one split so near-identical images cannot leak between train and validation.
 Writes data/interim/{dedup.csv, near_duplicate_pairs.csv} and
 reports/data_quality/dedup_{summary.json,report.md}.
 
-Usage: python -m cxr.data.dedup --config configs/data.yaml
+Usage: uv run python -m cxr.data.dedup --config configs/data.yaml
 """
 
 import argparse
@@ -59,6 +59,8 @@ def _pack(hex_hashes: list[str]) -> np.ndarray:
 
 def find_near_duplicates(hex_hashes: list[str], max_hamming: int, chunk: int = 512) -> pd.DataFrame:
     """All pairs (i < j) whose Hamming distance is <= max_hamming."""
+    if len(hex_hashes) < 2:
+        return pd.DataFrame(np.empty((0, 3), dtype=int), columns=["i", "j", "hamming"])
     packed = _pack(hex_hashes)
     pairs = []
     for start in range(0, len(packed), chunk):
