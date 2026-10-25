@@ -1,0 +1,84 @@
+{
+  "n_images": 5856,
+  "n_usable": 5856,
+  "thresholds": {
+    "min_side": 256,
+    "max_aspect_ratio": 2.5,
+    "workers": 8
+  },
+  "flags": {
+    "corrupt": 0,
+    "label_invalid": 0,
+    "too_small": 58,
+    "extreme_aspect": 27,
+    "color": 0,
+    "rgb_mode": 283
+  },
+  "flags_by_split": {
+    "test": {
+      "corrupt": 0,
+      "label_invalid": 0,
+      "too_small": 0,
+      "extreme_aspect": 1,
+      "color": 0,
+      "rgb_mode": 0
+    },
+    "train": {
+      "corrupt": 0,
+      "label_invalid": 0,
+      "too_small": 58,
+      "extreme_aspect": 26,
+      "color": 0,
+      "rgb_mode": 283
+    },
+    "validation": {
+      "corrupt": 0,
+      "label_invalid": 0,
+      "too_small": 0,
+      "extreme_aspect": 0,
+      "color": 0,
+      "rgb_mode": 0
+    }
+  },
+  "label_distribution": {
+    "test": {
+      "PNEUMONIA": 390,
+      "NORMAL": 234,
+      "pneumonia_ratio": 0.625
+    },
+    "train": {
+      "PNEUMONIA": 3875,
+      "NORMAL": 1341,
+      "pneumonia_ratio": 0.7429
+    },
+    "validation": {
+      "NORMAL": 8,
+      "PNEUMONIA": 8,
+      "pneumonia_ratio": 0.5
+    }
+  },
+  "modes": {
+    "L": 5573,
+    "RGB": 283
+  },
+  "formats": {
+    "JPEG": 5856
+  },
+  "size": {
+    "width": {
+      "min": 384,
+      "p05": 848,
+      "median": 1281,
+      "p95": 1966,
+      "max": 2916
+    },
+    "height": {
+      "min": 127,
+      "p05": 512,
+      "median": 888,
+      "p95": 1697,
+      "max": 2713
+    }
+  },
+  "corrupt_images": []
+}

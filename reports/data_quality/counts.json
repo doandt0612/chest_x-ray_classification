@@ -1,0 +1,21 @@
+{
+  "hf_repo": "hf-vision/chest-xray-pneumonia",
+  "revision": "c1a67c18df1a52ec332ffc00418f4eaa61a9f2bc",
+  "counts": {
+    "test": {
+      "NORMAL": 234,
+      "PNEUMONIA": 390,
+      "total": 624
+    },
+    "train": {
+      "NORMAL": 1341,
+      "PNEUMONIA": 3875,
+      "total": 5216
+    },
+    "validation": {
+      "NORMAL": 8,
+      "PNEUMONIA": 8,
+      "total": 16
+    }
+  }
+}

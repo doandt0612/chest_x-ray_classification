@@ -1,0 +1,56 @@
+{
+  "settings": {
+    "val_fraction": 0.15,
+    "seed": 42,
+    "merge_hf_validation": true,
+    "drop_exact_duplicates": true,
+    "exclude_flags": [
+      "too_small",
+      "extreme_aspect",
+      "rgb_mode"
+    ]
+  },
+  "counts": {
+    "train": {
+      "NORMAL": 1155,
+      "PNEUMONIA": 3064,
+      "total": 4219,
+      "groups": 2997,
+      "pneumonia_ratio": 0.7262,
+      "from_source": {
+        "train": 4205,
+        "validation": 14
+      }
+    },
+    "val": {
+      "NORMAL": 193,
+      "PNEUMONIA": 511,
+      "total": 704,
+      "groups": 501,
+      "pneumonia_ratio": 0.7259,
+      "from_source": {
+        "train": 702,
+        "validation": 2
+      }
+    },
+    "test": {
+      "NORMAL": 234,
+      "PNEUMONIA": 390,
+      "total": 624,
+      "groups": 427,
+      "pneumonia_ratio": 0.625,
+      "from_source": {
+        "test": 624
+      }
+    }
+  },
+  "val_share_of_pool": 0.143,
+  "excluded_from_train_pool": {
+    "too_small": 58,
+    "extreme_aspect": 26,
+    "rgb_mode": 283,
+    "flagged_total": 283,
+    "exact_duplicate": 26
+  },
+  "group_leakage": 0
+}

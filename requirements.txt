@@ -1,0 +1,35 @@
+# torch / torchvision: install separately (CUDA build)
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+# data
+datasets
+Pillow
+imagehash
+pandas
+numpy
+pyyaml
+
+# model / evaluation
+timm
+scikit-learn
+scipy
+matplotlib
+tqdm
+
+# experiment tracking
+mlflow
+
+# API
+fastapi
+uvicorn
+python-multipart
+pydantic
+
+# test / lint
+pytest
+httpx
+ruff
+
+# notebooks
+ipykernel
+jupyter

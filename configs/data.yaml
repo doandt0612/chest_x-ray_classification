@@ -1,0 +1,52 @@
+# Source dataset (CC BY 4.0). Revision is pinned for reproducibility.
+hf_repo: hf-vision/chest-xray-pneumonia
+revision: c1a67c18df1a52ec332ffc00418f4eaa61a9f2bc
+
+raw_dir: data/raw                 # parquet files from Hugging Face
+images_dir: data/raw/images       # images extracted from parquet: <split>/<image_id>.<ext>
+interim_dir: data/interim         # manifest.csv, validation.csv
+report_dir: reports/data_quality
+
+label_names:
+  0: NORMAL
+  1: PNEUMONIA
+
+validate:
+  min_side: 256          # shortest side below this -> flagged "too_small" (model input is 224)
+  max_aspect_ratio: 2.5  # long side / short side above this -> flagged "extreme_aspect"
+  workers: 8
+
+dedup:
+  hash_size: 16          # 256-bit pHash; the 64-bit default (8) is too coarse: distinct X-rays collide
+  max_hamming: 20        # pairs at or below are near-duplicates (observed: 34 pairs at 0, next pair at 36)
+  group_by_patient: true # also group images sharing the patient ID in the source filename
+  workers: 8
+
+processed_dir: data/processed     # splits.csv
+reference_dir: data/reference     # stats.json from TRAIN only (committed)
+
+# Shared by training, the API and monitoring (transforms.py / image_stats.py).
+image:
+  size: 224
+  # squash: resize straight to size x size (keeps the whole chest, distorts aspect ratio).
+  # center_crop: resize the short side to size, then crop the center (keeps aspect, may cut lung edges).
+  resize: squash
+  mean: [0.485, 0.456, 0.406]   # ImageNet, matches the pretrained timm backbone
+  std: [0.229, 0.224, 0.225]
+
+augment:                        # train only; no horizontal flip (heart position is anatomical)
+  rotation_deg: 10
+  scale: [0.9, 1.1]
+  translate: 0.05               # fraction of image size
+
+reference_stats:
+  workers: 8
+
+split:
+  val_fraction: 0.15            # approximate: StratifiedGroupKFold with round(1 / val_fraction) folds
+  seed: 42
+  merge_hf_validation: true     # HF "validation" has only 16 images; fold them into the train pool
+  drop_exact_duplicates: true   # keep one copy per exact duplicate in the train pool; test is kept as published
+  # validate.py flags to drop from the train pool (test is never filtered).
+  # Cropped low-resolution PNEUMONIA-only cohort -> shortcut risk; see docs/decisions.md.
+  exclude_flags: [too_small, extreme_aspect, rgb_mode]
