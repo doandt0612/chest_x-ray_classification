@@ -36,14 +36,29 @@ def test_find_near_duplicates_threshold():
     assert sorted(map(tuple, pairs[["i", "j"]].values.tolist())) == [(0, 1), (0, 2), (1, 2), (2, 3)]
 
 
+def _flip_bits(hex_hash: str, n_bits: int, rng) -> str:
+    bits = np.unpackbits(np.frombuffer(bytes.fromhex(hex_hash), dtype=np.uint8))
+    bits[rng.choice(bits.size, n_bits, replace=False)] ^= 1
+    return np.packbits(bits).tobytes().hex()
+
+
 def test_find_near_duplicates_chunking_matches_full():
+    # 10 clusters of 5 near-copies (0-6 flipped bits), shuffled so pairs cross chunk boundaries.
     rng = np.random.default_rng(0)
-    hashes = [rng.bytes(32).hex() for _ in range(50)]
-    hashes[40] = hashes[3]
-    full = find_near_duplicates(hashes, max_hamming=100)
-    chunked = find_near_duplicates(hashes, max_hamming=100, chunk=7)
+    bases = [rng.bytes(32).hex() for _ in range(10)]
+    hashes = [_flip_bits(b, k, rng) for b in bases for k in (0, 1, 2, 4, 6)]
+    hashes = [hashes[i] for i in rng.permutation(len(hashes))]
+
+    full = find_near_duplicates(hashes, max_hamming=12)
+    chunked = find_near_duplicates(hashes, max_hamming=12, chunk=7)
     pd.testing.assert_frame_equal(full, chunked)
-    assert ((full["i"] == 3) & (full["j"] == 40) & (full["hamming"] == 0)).any()
+    assert len(full) == 10 * 10  # every pair within a cluster (C(5,2) = 10), none across clusters
+    assert (full["i"] // 7 != full["j"] // 7).any()
+
+
+def test_find_near_duplicates_too_few_hashes():
+    assert find_near_duplicates([], max_hamming=20).empty
+    assert find_near_duplicates(["00ff"], max_hamming=20).empty
 
 
 def test_assign_groups_is_transitive_and_deterministic():

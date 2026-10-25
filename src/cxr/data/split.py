@@ -6,7 +6,7 @@ images of the same patient, from dedup.py) stays inside a single split.
 
 Writes data/processed/splits.csv and reports/data_quality/split_{summary.json,report.md}.
 
-Usage: python -m cxr.data.split --config configs/data.yaml
+Usage: uv run python -m cxr.data.split --config configs/data.yaml
 """
 
 import argparse
