@@ -64,6 +64,16 @@ confusion counts, bootstrap 95% CIs, pass/fail against the acceptance thresholds
 version: an existing `test_metrics.json` is never overwritten. `--split val` is a safe dry run;
 its probabilities must match the run's `val_predictions.csv` within 1e-4.
 
+Describe the errors on test (descriptive only, nothing is tuned):
+
+```bash
+uv run python -m cxr.evaluation.evaluate --version v1.0.0 --split val   # val predictions, needed below
+uv run python -m cxr.evaluation.error_analysis --version v1.0.0
+```
+
+This writes `reports/evaluation/v1.0.0/error_analysis.{json,md}` and the ROC, confusion matrix and
+probability histogram in `reports/figures/`.
+
 <!-- TODO: single entry point scripts/run_pipeline.py -->
 
 ## API
@@ -76,7 +86,18 @@ See [PLAN.md](../PLAN.md#1-cấu-trúc-thư-mục).
 
 ## Results
 
-<!-- TODO: table of AUC, sensitivity, specificity (with bootstrap CI), p50/p95 latency, monitoring validation results -->
+v1.0.0 on test (624 images, threshold 0.2313 chosen on val), with bootstrap 95% CIs:
+
+| Metric | Test | Acceptance (D6) |
+| :-- | :-- | :-- |
+| AUC | 0.959 [0.941, 0.973] | ≥ 0.93, pass |
+| Sensitivity | 0.995 [0.987, 1.000] | ≥ 0.90, pass |
+| Specificity | 0.735 [0.675, 0.791] | ≥ 0.75, **fail** |
+
+62 of 234 NORMAL test images are flagged as PNEUMONIA. See [docs/model_card.md](docs/model_card.md)
+for the error analysis and limitations.
+
+<!-- TODO: p50/p95 latency, monitoring validation results -->
 
 ## Model card
 
