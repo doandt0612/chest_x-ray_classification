@@ -42,6 +42,16 @@ Each run writes `runs/<timestamp>_<config>_seed<seed>/`: `best.pt` (best epoch o
 `val_metrics.json` (decision threshold chosen on val per `configs/eval.yaml`, sensitivity, specificity) and `val_predictions.csv`.
 Options: `--seed N` (override the seed), `--epochs N` (e.g. 1 for a quick check), `--run-name NAME`.
 
+Register the chosen run as a versioned model (never overwrites an existing version):
+
+```bash
+uv run python -m cxr.models.registry --run runs/<run_name> --version v1.0.0
+```
+
+This writes `models/v1.0.0/model.pt` (CPU weights) and `metadata.json` (model and preprocessing config,
+decision threshold, val metrics, git commit, dataset revision, `splits.csv` hash).
+GPU computations run in full float32 (TF32 off) so results match the CPU API.
+
 <!-- TODO: evaluation stage; single entry point scripts/run_pipeline.py -->
 
 ## API

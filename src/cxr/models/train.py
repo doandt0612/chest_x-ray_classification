@@ -6,8 +6,9 @@
 - Test is never touched here.
 
 Writes runs/<run_name>/best.pt (CPU state_dict + metadata), history.json (per-epoch
-metrics), config.json (all configs as used), and for the best epoch val_metrics.json
-(decision threshold chosen on val, sensitivity, specificity) + val_predictions.csv.
+metrics), config.json (all configs as used + git commit and splits.csv hash), and for
+the best epoch val_metrics.json (decision threshold chosen on val, sensitivity,
+specificity) + val_predictions.csv.
 
 Usage:
   uv run python -m cxr.models.train --train-config configs/train_baseline.yaml   # baseline
@@ -30,6 +31,7 @@ from cxr.data.dataset import build_dataset
 from cxr.evaluation.metrics import binary_metrics, choose_threshold
 from cxr.models.build import build_model, count_parameters, set_train_mode
 from cxr.utils.config import load_config
+from cxr.utils.provenance import provenance
 from cxr.utils.seed import set_seed
 
 
@@ -182,7 +184,8 @@ def main() -> None:
     out_dir = Path(cfg["train"]["output_dir"]) / run_name
     out_dir.mkdir(parents=True, exist_ok=False)
     with open(out_dir / "config.json", "w", encoding="utf-8") as f:
-        json.dump({"data": data_cfg, **cfg, "eval": eval_cfg}, f, indent=2)  # keys: data, model, train, eval
+        record = {"data": data_cfg, **cfg, "eval": eval_cfg, "provenance": provenance(data_cfg)}
+        json.dump(record, f, indent=2)  # keys: data, model, train, eval, provenance
 
     train_ds = build_dataset(data_cfg, "train")
     val_ds = build_dataset(data_cfg, "val")
