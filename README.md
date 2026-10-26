@@ -38,7 +38,8 @@ uv run python -m cxr.models.train --train-config configs/train_baseline.yaml  # 
 uv run python -m cxr.models.train --train-config configs/train.yaml           # fine-tune the whole network
 ```
 
-Each run writes `runs/<timestamp>_<config>_seed<seed>/`: `best.pt` (best epoch on val AUC), `history.json`, `config.json`.
+Each run writes `runs/<timestamp>_<config>_seed<seed>/`: `best.pt` (best epoch on val AUC), `history.json`, `config.json`,
+`val_metrics.json` (decision threshold chosen on val per `configs/eval.yaml`, sensitivity, specificity) and `val_predictions.csv`.
 Options: `--seed N` (override the seed), `--epochs N` (e.g. 1 for a quick check), `--run-name NAME`.
 
 <!-- TODO: evaluation stage; single entry point scripts/run_pipeline.py -->

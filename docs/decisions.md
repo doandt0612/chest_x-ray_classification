@@ -55,3 +55,13 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 **Lý do.** Khoảng 11,2 triệu tham số, chạy CPU nhanh, phù hợp API suy luận trên CPU. Mean/std của trọng số này trùng với chuẩn hóa ImageNet trong `configs/data.yaml`; `build.py` kiểm tra điều này khi tạo mô hình.
 
 **Hệ quả.** Baseline: `freeze_backbone: true`, chỉ train head (1.026 tham số). Mô hình chính: fine-tune toàn bộ.
+
+## D5. Chọn ngưỡng quyết định bằng chỉ số Youden trên val (26/10/2026)
+
+**Bối cảnh.** Mô hình trả xác suất PNEUMONIA. Cần một ngưỡng để ra nhãn, và ngưỡng quyết định độ nhạy, độ đặc hiệu báo cáo trên test.
+
+**Quyết định.** Ngưỡng là giá trị làm J = độ nhạy + độ đặc hiệu − 1 lớn nhất trên **val**; nếu bằng nhau, lấy ngưỡng cao nhất. Ảnh có xác suất ≥ ngưỡng là PNEUMONIA. Ngưỡng này áp nguyên lên test, không chọn lại trên test. Cấu hình: `configs/eval.yaml`, `threshold.method: youden`.
+
+**Lý do.** Đề tài chỉ dùng cho nghiên cứu, không có chi phí lâm sàng cụ thể để ưu tiên độ nhạy hay độ đặc hiệu. Youden coi hai loại lỗi ngang nhau, phổ biến và dễ giải thích. Phương án còn lại (độ nhạy tối thiểu, vd 0,95) cần một mục tiêu có căn cứ, hiện chưa có.
+
+**Hệ quả.** `train.py` ghi ngưỡng và chỉ số trên val vào `val_metrics.json` của mỗi lần chạy. Có thể chọn lại ngưỡng từ `val_predictions.csv` mà không train lại, nhưng mọi thay đổi phải ghi vào đây trước khi đo trên test.

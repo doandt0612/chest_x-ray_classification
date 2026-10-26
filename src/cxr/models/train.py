@@ -6,7 +6,8 @@
 - Test is never touched here.
 
 Writes runs/<run_name>/best.pt (CPU state_dict + metadata), history.json (per-epoch
-metrics) and config.json (both configs as used).
+metrics), config.json (all configs as used), and for the best epoch val_metrics.json
+(decision threshold chosen on val, sensitivity, specificity) + val_predictions.csv.
 
 Usage:
   uv run python -m cxr.models.train --train-config configs/train_baseline.yaml   # baseline
@@ -26,6 +27,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from cxr.data.dataset import build_dataset
+from cxr.evaluation.metrics import binary_metrics, choose_threshold
 from cxr.models.build import build_model, count_parameters, set_train_mode
 from cxr.utils.config import load_config
 from cxr.utils.seed import set_seed
@@ -84,7 +86,8 @@ def predict(model, loader, device) -> tuple[np.ndarray, np.ndarray]:
     labels, probs = [], []
     for x, y in loader:
         logits = model(x.to(device))
-        probs.append(logits.softmax(dim=1)[:, 1].cpu().numpy())
+        # float64 so the values round-trip exactly through val_predictions.csv and the threshold.
+        probs.append(logits.softmax(dim=1)[:, 1].double().cpu().numpy())
         labels.append(y.numpy())
     return np.concatenate(labels), np.concatenate(probs)
 
@@ -159,6 +162,7 @@ def main() -> None:
     )
     parser.add_argument("--data-config", default="configs/data.yaml")
     parser.add_argument("--train-config", default="configs/train.yaml")
+    parser.add_argument("--eval-config", default="configs/eval.yaml", help="decision threshold on val")
     parser.add_argument("--run-name", help="default: <timestamp>_<config file name>_seed<seed>")
     parser.add_argument("--epochs", type=int, help="override train.epochs, e.g. 1 for a quick check")
     parser.add_argument("--seed", type=int, help="override train.seed, e.g. for multi-seed runs")
@@ -166,6 +170,7 @@ def main() -> None:
 
     data_cfg = load_config(args.data_config)
     cfg = load_config(args.train_config)
+    eval_cfg = load_config(args.eval_config)
     if args.epochs is not None:
         cfg["train"]["epochs"] = args.epochs
     if args.seed is not None:
@@ -177,7 +182,7 @@ def main() -> None:
     out_dir = Path(cfg["train"]["output_dir"]) / run_name
     out_dir.mkdir(parents=True, exist_ok=False)
     with open(out_dir / "config.json", "w", encoding="utf-8") as f:
-        json.dump({"data": data_cfg, **cfg}, f, indent=2)  # keys: data, model, train
+        json.dump({"data": data_cfg, **cfg, "eval": eval_cfg}, f, indent=2)  # keys: data, model, train, eval
 
     train_ds = build_dataset(data_cfg, "train")
     val_ds = build_dataset(data_cfg, "val")
@@ -185,11 +190,34 @@ def main() -> None:
     print(f"Run {out_dir}  train {len(train_ds)}  val {len(val_ds)}  params {count_parameters(model)}")
     print(f"Class weights {class_weights(train_ds.labels, cfg['model']['num_classes']).tolist()}")
 
-    history = fit(model, make_loader(train_ds, cfg, True), make_loader(val_ds, cfg, False), cfg, out_dir)
+    val_loader = make_loader(val_ds, cfg, False)
+    history = fit(model, make_loader(train_ds, cfg, True), val_loader, cfg, out_dir)
     with open(out_dir / "history.json", "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
     best = max(history, key=lambda r: r["val_auc"])
     print(f"Best val AUC {best['val_auc']:.4f} at epoch {best['epoch']} -> {out_dir / 'best.pt'}")
+
+    m = evaluate_val(model, val_loader, eval_cfg["threshold"], out_dir)
+    print(
+        f"Val at threshold {m['threshold']:.4f} ({eval_cfg['threshold']['method']}): "
+        f"sensitivity {m['sensitivity']:.4f}  specificity {m['specificity']:.4f}"
+    )
+
+
+def evaluate_val(model, val_loader, threshold_cfg: dict, out_dir: Path) -> dict:
+    """Reload best.pt, choose the decision threshold on val, write val_metrics.json + val_predictions.csv."""
+    device = next(model.parameters()).device
+    model.load_state_dict(torch.load(out_dir / "best.pt")["model_state"])
+    y_val, p_val = predict(model, val_loader, device)
+
+    metrics = binary_metrics(y_val, p_val, choose_threshold(y_val, p_val, threshold_cfg))
+    metrics["threshold_rule"] = threshold_cfg
+    with open(out_dir / "val_metrics.json", "w", encoding="utf-8") as f:
+        json.dump(metrics, f, indent=2)
+    # Kept so the threshold can be re-chosen later without retraining.
+    frame = val_loader.dataset.frame[["image_id", "label"]].assign(prob=p_val)
+    frame.to_csv(out_dir / "val_predictions.csv", index=False)
+    return metrics
 
 
 if __name__ == "__main__":

@@ -1,11 +1,15 @@
+import json
+
 import numpy as np
+import pandas as pd
 import pytest
 import torch
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader, Dataset
 
+from cxr.evaluation.metrics import binary_metrics
 from cxr.models.build import build_model
-from cxr.models.train import EarlyStopping, class_weights, fit, predict
+from cxr.models.train import EarlyStopping, class_weights, evaluate_val, fit, predict
 from cxr.utils.seed import set_seed
 
 
@@ -15,6 +19,7 @@ class ToyDataset(Dataset):
     def __init__(self, labels: list[int], seed: int):
         g = torch.Generator().manual_seed(seed)
         self.labels = labels
+        self.frame = pd.DataFrame({"image_id": [f"i{i}" for i in range(len(labels))], "label": labels})
         self.x = torch.randn(len(labels), 3, 32, 32, generator=g) * 0.3 + torch.tensor(labels).view(
             -1, 1, 1, 1
         )
@@ -101,3 +106,29 @@ def test_fit_with_frozen_backbone_changes_only_head(tmp_path):
     )
     assert torch.equal(model.conv1.weight, conv_before) and torch.equal(model.bn1.running_mean, bn_before)
     assert not torch.equal(model.fc.weight, fc_before)
+
+
+def test_evaluate_val_writes_threshold_metrics_and_predictions(tmp_path):
+    set_seed(0)
+    val = ToyDataset([0, 1] * 8, seed=2)
+    model = build_model(CFG["model"])
+    fit(
+        model,
+        DataLoader(ToyDataset([0, 1] * 16, 1), batch_size=8),
+        DataLoader(val, batch_size=8),
+        CFG,
+        tmp_path,
+    )
+    m = evaluate_val(model, DataLoader(val, batch_size=8), {"method": "youden"}, tmp_path)
+
+    saved = json.loads((tmp_path / "val_metrics.json").read_text())
+    assert saved["threshold"] == m["threshold"] and saved["threshold_rule"] == {"method": "youden"}
+    assert m["tn"] + m["fp"] == 8 and m["fn"] + m["tp"] == 8
+    preds = pd.read_csv(tmp_path / "val_predictions.csv")
+    assert list(preds.columns) == ["image_id", "label", "prob"] and len(preds) == 16
+    assert m["auc"] == pytest.approx(roc_auc_score(preds["label"], preds["prob"]))
+    # Metrics come from the reloaded best epoch, not from the last epoch left in memory.
+    assert m["auc"] == pytest.approx(torch.load(tmp_path / "best.pt")["val_auc"])
+    # Reapplying the stored threshold to the saved CSV reproduces the confusion counts exactly.
+    again = binary_metrics(preds["label"], preds["prob"], saved["threshold"])
+    assert (again["tn"], again["fp"], again["fn"], again["tp"]) == (m["tn"], m["fp"], m["fn"], m["tp"])
