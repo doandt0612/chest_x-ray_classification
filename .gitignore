@@ -27,6 +27,7 @@ data/processed/
 # Models and experiment tracking
 # Root models/ only (trained models), not src/cxr/models
 /models/
+/runs/
 mlruns/
 mlartifacts/
 *.pt

@@ -31,7 +31,17 @@ uv run python -m cxr.data.split            # train / val / test -> data/processe
 uv run python -m cxr.data.reference_stats  # train-only reference stats -> data/reference/stats.json
 ```
 
-<!-- TODO: training and evaluation stages; single entry point scripts/run_pipeline.py -->
+Training (stage 6, settings in `configs/train_baseline.yaml` and `configs/train.yaml`):
+
+```bash
+uv run python -m cxr.models.train --train-config configs/train_baseline.yaml  # frozen backbone, head only
+uv run python -m cxr.models.train --train-config configs/train.yaml           # fine-tune the whole network
+```
+
+Each run writes `runs/<timestamp>_<config>_seed<seed>/`: `best.pt` (best epoch on val AUC), `history.json`, `config.json`.
+Options: `--seed N` (override the seed), `--epochs N` (e.g. 1 for a quick check), `--run-name NAME`.
+
+<!-- TODO: evaluation stage; single entry point scripts/run_pipeline.py -->
 
 ## API
 

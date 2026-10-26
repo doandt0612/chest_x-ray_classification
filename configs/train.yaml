@@ -1,7 +1,18 @@
-# Training settings. Data and preprocessing settings stay in configs/data.yaml.
+# Main model: fine-tune the whole network. Data and preprocessing settings stay in configs/data.yaml.
 
 model:
   backbone: resnet18        # any timm model name; resnet18 = timm "resnet18.a1_in1k" (ImageNet-1k)
   pretrained: true          # download ImageNet weights from the Hugging Face Hub (cached after the first run)
   num_classes: 2            # NORMAL / PNEUMONIA, logits for cross-entropy
   freeze_backbone: false    # true = train only the classification head (baseline)
+
+train:
+  seed: 42
+  epochs: 20                # upper bound; early stopping usually ends sooner
+  patience: 5               # stop after this many epochs without a better val AUC
+  batch_size: 32
+  lr: 1.0e-4                # AdamW; small because the pretrained backbone is updated too
+  weight_decay: 1.0e-4
+  num_workers: 4            # DataLoader worker processes
+  device: auto              # auto = cuda if available, else cpu
+  output_dir: runs          # each run writes runs/<run_name>/{best.pt, history.json, config.json}

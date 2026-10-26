@@ -1,0 +1,18 @@
+# Baseline: frozen ImageNet backbone, train only the 2-class head. Same fields as configs/train.yaml.
+
+model:
+  backbone: resnet18
+  pretrained: true
+  num_classes: 2
+  freeze_backbone: true
+
+train:
+  seed: 42
+  epochs: 20
+  patience: 5
+  batch_size: 32
+  lr: 1.0e-3                # larger than the main model: only the head (1,026 parameters) learns
+  weight_decay: 1.0e-4
+  num_workers: 4
+  device: auto
+  output_dir: runs
