@@ -30,7 +30,10 @@ def test_dark_image_is_darker():
     rng = np.random.default_rng(0)
     base = rng.integers(0, 255, (300, 300)).astype(np.uint8)
     dark = (base * 0.3).astype(np.uint8)
-    s_base, s_dark = image_stats(Image.fromarray(base), IMAGE_CFG), image_stats(Image.fromarray(dark), IMAGE_CFG)
+    s_base, s_dark = (
+        image_stats(Image.fromarray(base), IMAGE_CFG),
+        image_stats(Image.fromarray(dark), IMAGE_CFG),
+    )
     assert s_dark["brightness"] < s_base["brightness"]
     assert s_dark["dark_fraction"] > s_base["dark_fraction"]
 

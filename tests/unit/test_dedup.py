@@ -103,8 +103,12 @@ def test_dedup_groups_by_hash_and_patient(tmp_path):
             "label_name": ["PNEUMONIA", "PNEUMONIA", "PNEUMONIA", "NORMAL"],
             "path": paths,
             # i0/i1 are pixel copies; i2 shares patient 7 with i0; i3 is unrelated
-            "source_filename": ["person7_virus_1.jpeg", "person9_virus_2.jpeg", "person7_virus_3.jpeg",
-                                "IM-0001-0001.jpeg"],
+            "source_filename": [
+                "person7_virus_1.jpeg",
+                "person9_virus_2.jpeg",
+                "person7_virus_3.jpeg",
+                "IM-0001-0001.jpeg",
+            ],
             "sha256": ["x", "y", "z", "w"],
             "usable": [True, True, True, True],
         }

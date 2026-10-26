@@ -139,8 +139,10 @@ def summarize(df: pd.DataFrame, pairs: pd.DataFrame, cfg: dict) -> dict:
     group_splits = groups["split"].agg(lambda s: "+".join(sorted(set(s))))
     multi_split = group_splits[group_splits.str.contains(r"\+")]
 
-    patients = df.dropna(subset=["patient_id"]).groupby("patient_id")["split"].agg(
-        lambda s: "+".join(sorted(set(s)))
+    patients = (
+        df.dropna(subset=["patient_id"])
+        .groupby("patient_id")["split"]
+        .agg(lambda s: "+".join(sorted(set(s))))
     )
     shared_patients = patients[patients.str.contains(r"\+")]
 
@@ -162,7 +164,9 @@ def summarize(df: pd.DataFrame, pairs: pd.DataFrame, cfg: dict) -> dict:
             }
             if len(pairs)
             else {},
-            "hamming_histogram": {int(k): int(v) for k, v in pairs["hamming"].value_counts().sort_index().items()},
+            "hamming_histogram": {
+                int(k): int(v) for k, v in pairs["hamming"].value_counts().sort_index().items()
+            },
         },
         "patients": {
             "n_with_id": int(df["patient_id"].notna().sum()),

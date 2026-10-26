@@ -31,7 +31,40 @@ uv run python -m cxr.data.split            # train / val / test -> data/processe
 uv run python -m cxr.data.reference_stats  # train-only reference stats -> data/reference/stats.json
 ```
 
-<!-- TODO: training and evaluation stages; single entry point scripts/run_pipeline.py -->
+Training (stage 6, settings in `configs/train_baseline.yaml` and `configs/train.yaml`):
+
+```bash
+uv run python -m cxr.models.train --train-config configs/train_baseline.yaml  # frozen backbone, head only
+uv run python -m cxr.models.train --train-config configs/train.yaml           # fine-tune the whole network
+```
+
+Each run writes `runs/<timestamp>_<config>_seed<seed>/`: `best.pt` (best epoch on val AUC), `history.json`, `config.json`,
+`val_metrics.json` (decision threshold chosen on val per `configs/eval.yaml`, sensitivity, specificity) and `val_predictions.csv`.
+Options: `--seed N` (override the seed), `--epochs N` (e.g. 1 for a quick check), `--run-name NAME`.
+
+Register the chosen run as a versioned model (never overwrites an existing version):
+
+```bash
+uv run python -m cxr.models.registry --run runs/<run_name> --version v1.0.0
+```
+
+This writes `models/v1.0.0/model.pt` (CPU weights) and `metadata.json` (model and preprocessing config,
+decision threshold, val metrics, git commit, dataset revision, `splits.csv` hash).
+GPU computations run in full float32 (TF32 off) so results match the CPU API.
+
+Evaluate a registered model on test, with the threshold chosen on val:
+
+```bash
+uv run python -m cxr.evaluation.evaluate --version v1.0.0
+```
+
+This writes `reports/evaluation/v1.0.0/test_metrics.json` (AUC, sensitivity, specificity,
+confusion counts, bootstrap 95% CIs, pass/fail against the acceptance thresholds in
+`configs/eval.yaml`), the git commit and `test_predictions.csv`. Test is evaluated once per
+version: an existing `test_metrics.json` is never overwritten. `--split val` is a safe dry run;
+its probabilities must match the run's `val_predictions.csv` within 1e-4.
+
+<!-- TODO: single entry point scripts/run_pipeline.py -->
 
 ## API
 
