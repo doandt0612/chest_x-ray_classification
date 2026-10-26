@@ -130,3 +130,24 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 **Hệ quả.** Từ đây không đổi các ngưỡng này sau khi đã thấy kết quả test. Nếu buộc phải đổi, ghi một mục mới kèm lý do và nêu rõ trong báo cáo. Bảng này cần chép vào đề cương (mục 2.2).
 
 **Giới hạn.** Ngưỡng AUC 0,93 và độ đặc hiệu 0,75 dựa trên nhận định chung rằng test của bộ dữ liệu này khó hơn val, không dựa trên số đo test.
+
+## D7. Cách tính khoảng tin cậy bootstrap (26/10/2026)
+
+**Bối cảnh.** D6 yêu cầu mọi chỉ số trên test kèm khoảng tin cậy 95%. Test có 624 ảnh: 234 NORMAL, 390 PNEUMONIA. Cần chốt cách tính trước khi đo trên test.
+
+**Quyết định.** `src/cxr/evaluation/bootstrap.py`, cấu hình ở `configs/eval.yaml`, mục `bootstrap`:
+- 1.000 vòng, độ tin cậy 0,95, seed 0.
+- Mỗi vòng lấy mẫu có hoàn lại **riêng từng lớp**, giữ nguyên số ảnh mỗi lớp (bootstrap phân tầng).
+- Ngưỡng quyết định giữ cố định (ngưỡng chọn trên val theo D5), không chọn lại trong từng vòng.
+- Khoảng tin cậy là khoảng phân vị: phân vị 2,5% và 97,5% của 1.000 giá trị.
+- Giá trị báo cáo là chỉ số trên toàn bộ test, không phải trung bình các vòng.
+
+**Lý do.**
+- Tỉ lệ lớp của test cố định theo cách bộ dữ liệu được công bố, không do ngẫu nhiên. Phân tầng giữ đúng điều này, và mỗi vòng luôn có đủ hai lớp nên AUC luôn tính được.
+- Độ nhạy chỉ phụ thuộc ảnh PNEUMONIA, độ đặc hiệu chỉ phụ thuộc ảnh NORMAL. Khi phân tầng, khoảng tin cậy của hai chỉ số này gần với khoảng nhị thức thông thường, dễ kiểm tra.
+- Giữ ngưỡng cố định vì khi triển khai, ngưỡng cũng cố định. Khoảng tin cậy chỉ phản ánh dao động do mẫu test, không phản ánh dao động do chọn ngưỡng.
+- Khoảng phân vị đơn giản, phổ biến. Với 1.000 vòng, sai số của cận khoảng do số vòng gây ra nhỏ hơn nhiều so với độ rộng khoảng.
+
+**Giới hạn.** Bootstrap coi mỗi ảnh độc lập. Bộ dữ liệu không có mã bệnh nhân, nên ảnh cùng bệnh nhân có thể làm khoảng tin cậy hẹp hơn thực tế. Khoảng này không phản ánh dao động giữa các seed train; dao động đó đo riêng bằng nhiều seed (D6).
+
+Khi một chỉ số đúng bằng 0 hoặc 1 trên toàn bộ test (vd không ảnh NORMAL nào bị báo nhầm), mọi vòng cho cùng giá trị và khoảng tin cậy rộng 0. Trường hợp này báo cáo là "bootstrap không ước lượng được", không phải "không có sai số".

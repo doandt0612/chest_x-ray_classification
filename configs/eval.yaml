@@ -4,3 +4,8 @@ threshold:
   method: youden            # youden = max(sensitivity + specificity - 1)
                             # min_sensitivity = best specificity with sensitivity >= target_sensitivity
   target_sensitivity: 0.95  # used only by min_sensitivity
+
+bootstrap:                  # 95% CI on test, resampling each class separately
+  n_boot: 1000
+  confidence: 0.95
+  seed: 0
