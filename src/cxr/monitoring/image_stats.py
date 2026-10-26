@@ -9,8 +9,16 @@ from PIL import Image
 
 from cxr.data.transforms import prepare_gray
 
-STAT_NAMES = ("width", "height", "aspect_ratio", "brightness", "contrast", "blur", "dark_fraction",
-              "bright_fraction")
+STAT_NAMES = (
+    "width",
+    "height",
+    "aspect_ratio",
+    "brightness",
+    "contrast",
+    "blur",
+    "dark_fraction",
+    "bright_fraction",
+)
 
 
 def laplacian_variance(gray: np.ndarray) -> float:
