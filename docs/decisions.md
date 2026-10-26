@@ -65,3 +65,68 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 **Lý do.** Đề tài chỉ dùng cho nghiên cứu, không có chi phí lâm sàng cụ thể để ưu tiên độ nhạy hay độ đặc hiệu. Youden coi hai loại lỗi ngang nhau, phổ biến và dễ giải thích. Phương án còn lại (độ nhạy tối thiểu, vd 0,95) cần một mục tiêu có căn cứ, hiện chưa có.
 
 **Hệ quả.** `train.py` ghi ngưỡng và chỉ số trên val vào `val_metrics.json` của mỗi lần chạy. Có thể chọn lại ngưỡng từ `val_predictions.csv` mà không train lại, nhưng mọi thay đổi phải ghi vào đây trước khi đo trên test.
+
+## D6. Ngưỡng chấp nhận cho từng mục tiêu (26/10/2026)
+
+**Bối cảnh.** Ngưỡng phải chốt **trước khi** đo mô hình chính và trước khi xem bất kỳ kết quả nào trên test. Căn cứ duy nhất là baseline trên val (`runs/20261026_171211_train_baseline_seed42/`): backbone ResNet-18 đóng băng, 20 epoch, AUC val 0,9909; ở ngưỡng Youden 0,595: độ nhạy 0,945, độ đặc hiệu 0,979. Baseline chưa hội tụ hẳn (AUC còn tăng ~0,0002/epoch ở cuối). Chưa ai nhìn vào test.
+
+**Quyết định.** Một tiêu chí "đạt" khi ước lượng điểm ≥ ngưỡng. Mọi chỉ số trên test báo cáo kèm khoảng tin cậy bootstrap 95%.
+
+1. Đánh giá trung thực (mô hình chính, trên test, ngưỡng quyết định chọn trên val theo D5):
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| AUC test | ≥ 0,93 |
+| Độ nhạy test | ≥ 0,90 |
+| Độ đặc hiệu test | ≥ 0,75 |
+| Chọn mô hình v1.0.0 | Mô hình chính nếu AUC val > 0,9909 (baseline); nếu không, dùng baseline. Chỉ dựa trên val |
+| Ổn định giữa 3 seed | Độ lệch chuẩn AUC test ≤ 0,01 |
+
+2. Tái lập được:
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| Dữ liệu chạy lại trên máy sạch | Train/val/test đúng 4.219 / 704 / 624 ảnh; `splits.csv` giống từng dòng |
+| AUC test chạy lại | Lệch ≤ max(2 × độ lệch chuẩn giữa các seed; 0,005) |
+
+3. Dữ liệu tin cậy:
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| `group_id` nằm ở hơn một tập | 0 |
+| Ảnh trùng hoặc gần trùng giữa train/val và test | 0 |
+| Báo cáo số ảnh và ảnh bị loại | Có, trong `reports/data_quality/` |
+
+4. Triển khai được (API trên CPU):
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| Độ trễ p95 của `/predict` | ≤ 500 ms mỗi ảnh |
+| Chênh xác suất giữa API và dự đoán offline cùng ảnh | < 1e-5 |
+| Đầu vào hỏng hoặc sai định dạng | 100% trả lỗi 4xx, có test |
+| Kích thước Docker image | ≤ 2 GB |
+
+5. Chất lượng kỹ thuật:
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| pytest | 100% qua |
+| ruff | 0 lỗi |
+| Test unit | Mọi module trong `src/cxr/` có ít nhất một test |
+
+6. Giám sát đầu vào:
+
+| Tiêu chí | Ngưỡng |
+| :-- | :-- |
+| Cảnh báo nhầm trên ảnh test sạch | ≤ 5% |
+| Phát hiện ở mức suy giảm mạnh nhất | ≥ 90% cho mỗi loại (mờ, nhiễu, tối, nén JPEG); các mức nhẹ hơn chỉ báo cáo |
+
+**Lý do.**
+- Val tách từ cùng nguồn với train. Test của bộ Kermany được công bố riêng và khác phân bố (62,5% so với 72,6% PNEUMONIA), nên chỉ số trên test dự kiến thấp hơn val. Các ngưỡng hiệu năng chừa khoảng hụt: AUC 6 điểm, độ nhạy 4,5 điểm, độ đặc hiệu nhiều hơn vì đây là điểm yếu thường gặp trên test này.
+- Cỡ mẫu test giới hạn độ chính xác: khoảng tin cậy 95% rộng khoảng ±0,02 cho độ nhạy (390 ca) và ±0,05 cho độ đặc hiệu (234 ca). Vì vậy dùng ước lượng điểm, không đòi cận dưới khoảng tin cậy vượt ngưỡng.
+- Độ trễ 500 ms là ước lượng an toàn cho ResNet-18 trên CPU cộng thời gian giải mã ảnh lớn, chưa đo.
+- Ngưỡng cảnh báo nhầm 5% buộc `drift.py` giữ ít chỉ số hoặc khoảng tham chiếu đủ rộng, vì báo nhầm cộng dồn qua các chỉ số.
+
+**Hệ quả.** Từ đây không đổi các ngưỡng này sau khi đã thấy kết quả test. Nếu buộc phải đổi, ghi một mục mới kèm lý do và nêu rõ trong báo cáo. Bảng này cần chép vào đề cương (mục 2.2).
+
+**Giới hạn.** Ngưỡng AUC 0,93 và độ đặc hiệu 0,75 dựa trên nhận định chung rằng test của bộ dữ liệu này khó hơn val, không dựa trên số đo test.
