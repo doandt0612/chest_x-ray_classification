@@ -1,0 +1,63 @@
+{
+  "version": "v1.0.0",
+  "threshold": 0.23134267330169678,
+  "metrics": {
+    "n": 704,
+    "auc": 0.9984080792512903,
+    "threshold": 0.23134267330169678,
+    "sensitivity": 0.9804305283757339,
+    "specificity": 0.9948186528497409,
+    "tn": 192,
+    "fp": 1,
+    "fn": 10,
+    "tp": 501
+  },
+  "ci": {
+    "auc": {
+      "value": 0.9984080792512903,
+      "ci_low": 0.9964911835981465,
+      "ci_high": 0.9996352270768483
+    },
+    "sensitivity": {
+      "value": 0.9804305283757339,
+      "ci_low": 0.9667318982387475,
+      "ci_high": 0.9921722113502935
+    },
+    "specificity": {
+      "value": 0.9948186528497409,
+      "ci_low": 0.9843264248704664,
+      "ci_high": 1.0
+    },
+    "n_boot": 1000,
+    "confidence": 0.95,
+    "seed": 0
+  },
+  "split": "val",
+  "eval_config": {
+    "threshold": {
+      "method": "youden",
+      "target_sensitivity": 0.95
+    },
+    "bootstrap": {
+      "n_boot": 1000,
+      "confidence": 0.95,
+      "seed": 0
+    },
+    "acceptance": {
+      "auc": 0.93,
+      "sensitivity": 0.9,
+      "specificity": 0.75
+    }
+  },
+  "provenance": {
+    "git": {
+      "commit": "6eb5093ddb6e592be9b6f7416d4761adb4b52f02",
+      "dirty": false
+    },
+    "dataset": {
+      "hf_repo": "hf-vision/chest-xray-pneumonia",
+      "revision": "c1a67c18df1a52ec332ffc00418f4eaa61a9f2bc"
+    },
+    "splits_sha256": "475a0d3141e9962078edcd6a3c29ad100eed4154e9a59e4ee7227e28adfaed1d"
+  }
+}
