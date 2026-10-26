@@ -9,3 +9,8 @@ bootstrap:                  # 95% CI on test, resampling each class separately
   n_boot: 1000
   confidence: 0.95
   seed: 0
+
+acceptance:                 # D6 in docs/decisions.md; passed = point estimate >= value on test
+  auc: 0.93
+  sensitivity: 0.90
+  specificity: 0.75

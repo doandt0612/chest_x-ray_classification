@@ -52,7 +52,19 @@ This writes `models/v1.0.0/model.pt` (CPU weights) and `metadata.json` (model an
 decision threshold, val metrics, git commit, dataset revision, `splits.csv` hash).
 GPU computations run in full float32 (TF32 off) so results match the CPU API.
 
-<!-- TODO: evaluation stage; single entry point scripts/run_pipeline.py -->
+Evaluate a registered model on test, with the threshold chosen on val:
+
+```bash
+uv run python -m cxr.evaluation.evaluate --version v1.0.0
+```
+
+This writes `reports/evaluation/v1.0.0/test_metrics.json` (AUC, sensitivity, specificity,
+confusion counts, bootstrap 95% CIs, pass/fail against the acceptance thresholds in
+`configs/eval.yaml`), the git commit and `test_predictions.csv`. Test is evaluated once per
+version: an existing `test_metrics.json` is never overwritten. `--split val` is a safe dry run;
+its probabilities must match the run's `val_predictions.csv` within 1e-4.
+
+<!-- TODO: single entry point scripts/run_pipeline.py -->
 
 ## API
 
