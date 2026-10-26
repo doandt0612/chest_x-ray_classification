@@ -1,0 +1,7 @@
+# Training settings. Data and preprocessing settings stay in configs/data.yaml.
+
+model:
+  backbone: resnet18        # any timm model name; resnet18 = timm "resnet18.a1_in1k" (ImageNet-1k)
+  pretrained: true          # download ImageNet weights from the Hugging Face Hub (cached after the first run)
+  num_classes: 2            # NORMAL / PNEUMONIA, logits for cross-entropy
+  freeze_backbone: false    # true = train only the classification head (baseline)

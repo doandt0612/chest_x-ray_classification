@@ -45,3 +45,13 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 **Hệ quả.** Train 4.219 ảnh (72,62% PNEUMONIA), val 704 (72,59%), test 624 (62,50%).
 
 **Giới hạn còn lại.** Ngay cả ảnh xám, NORMAL vẫn có độ phân giải cao hơn PNEUMONIA rõ rệt (chiều cao trung vị ~1.330 so với ~800 px ở train). Đây là đặc điểm đã biết của dữ liệu Kermany, không loại bỏ được bằng cách lọc. Cần nêu trong `data_card.md` và `model_card.md`. Nhận định "cả 283 ảnh RGB đều bị cắt" dựa trên số liệu kích thước và một số ảnh đã xem trực tiếp, chưa xem hết từng ảnh.
+
+## D4. Backbone ResNet-18 từ timm (26/10/2026)
+
+**Bối cảnh.** PLAN.md đề xuất một backbone nhỏ, tiền huấn luyện ImageNet: ResNet-18 hoặc EfficientNet-B0. Không so sánh kiến trúc.
+
+**Quyết định.** Dùng `resnet18` của thư viện `timm` (trọng số `resnet18.a1_in1k`), head mới `Linear(512, 2)`. Cấu hình ở `configs/train.yaml`, mục `model`.
+
+**Lý do.** Khoảng 11,2 triệu tham số, chạy CPU nhanh, phù hợp API suy luận trên CPU. Mean/std của trọng số này trùng với chuẩn hóa ImageNet trong `configs/data.yaml`; `build.py` kiểm tra điều này khi tạo mô hình.
+
+**Hệ quả.** Baseline: `freeze_backbone: true`, chỉ train head (1.026 tham số). Mô hình chính: fine-tune toàn bộ.
