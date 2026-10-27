@@ -1,0 +1,11 @@
+# Inference API (src/cxr/api/). Pick another file with the CXR_API_CONFIG environment variable.
+
+model_dir: models/v1.0.0              # registered model: model.pt + metadata.json (cxr.models.registry)
+monitor_config: configs/monitor.yaml  # input quality checks (drift.py)
+
+max_upload_mb: 10                     # larger uploads -> 413
+allowed_formats: [JPEG, PNG]          # PIL format names; others -> 415
+allowed_modes: [L, RGB]               # 8-bit gray or RGB, as in training; e.g. 16-bit PNG -> 415
+max_pixels: 16000000                  # width x height above this -> 413 (training max ~7.8 MP; bounds memory per request)
+
+request_log: logs/requests.jsonl      # one JSON line of stats per request, never the image; null = off
