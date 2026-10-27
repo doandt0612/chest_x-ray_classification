@@ -151,3 +151,18 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 **Giới hạn.** Bootstrap coi mỗi ảnh độc lập. Bộ dữ liệu không có mã bệnh nhân, nên ảnh cùng bệnh nhân có thể làm khoảng tin cậy hẹp hơn thực tế. Khoảng này không phản ánh dao động giữa các seed train; dao động đó đo riêng bằng nhiều seed (D6).
 
 Khi một chỉ số đúng bằng 0 hoặc 1 trên toàn bộ test (vd không ảnh NORMAL nào bị báo nhầm), mọi vòng cho cùng giá trị và khoảng tin cậy rộng 0. Trường hợp này báo cáo là "bootstrap không ước lượng được", không phải "không có sai số".
+
+## D8. Cách đo độ ổn định giữa các seed (27/10/2026)
+
+**Bối cảnh.** D6 yêu cầu độ lệch chuẩn AUC test giữa 3 seed ≤ 0,01. Tiêu chí tái lập trên máy sạch cũng dùng con số này. Cần chốt cách đo trước khi xem kết quả test của các seed mới.
+
+**Quyết định.** `src/cxr/evaluation/multi_seed.py`, ngưỡng ở `configs/eval.yaml`, mục `multi_seed`:
+- 3 seed: 42 (run `20261026_190912_train_seed42`, nguồn của v1.0.0, dùng lại, không train lại), 0 và 1 (train mới với `configs/train.yaml`, chỉ đổi `--seed`).
+- Mỗi run được đo trên test với ngưỡng quyết định của chính nó, chọn trên val theo D5.
+- Báo cáo trung bình và độ lệch chuẩn mẫu (ddof=1) của AUC, độ nhạy, độ đặc hiệu. Chỉ AUC có ngưỡng chấp nhận.
+- Trước khi đo test, module kiểm tra: seed khác nhau, cùng hash `splits.csv`, `config.json` giống nhau trừ `train.seed`. Phần `eval` chỉ so `threshold`, vì khi train chỉ dùng mục này; các mục `bootstrap`, `acceptance` được thêm sau run seed 42.
+- Kết quả ghi một lần vào `reports/evaluation/multi_seed/`, không ghi đè.
+
+**Lý do.** Mỗi seed đi đúng quy trình như v1.0.0, nên độ lệch chỉ phản ánh dao động do seed. Code huấn luyện, cấu hình và `splits.csv` giống nhau giữa ba run (đã so `git diff ad0ab9d eb7c355` và hash `splits.csv`). Độ lệch chuẩn mẫu là cách tính thông thường khi chỉ có vài lần chạy.
+
+**Hệ quả.** Các seed mới không dùng để chọn mô hình. v1.0.0 giữ nguyên, kể cả khi một seed khác có AUC test cao hơn. Với 3 run, độ lệch chuẩn ước lượng còn rất thô; cần nêu điều này trong báo cáo.
