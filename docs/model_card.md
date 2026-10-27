@@ -44,6 +44,23 @@ Khoảng tin cậy 95% tính bằng bootstrap phân tầng, 1.000 vòng (D7). Ng
 - Test chỉ được đánh giá một lần. Ngưỡng không chọn lại trên test.
 - Hình trong `reports/figures/`: `v1.0.0_roc.png`, `v1.0.0_confusion.png`, `v1.0.0_prob_normal.png` (thang log).
 
+### Độ ổn định giữa các seed
+
+Cùng cấu hình, train lại với 3 seed (42 là v1.0.0, thêm 0 và 1). Mỗi run đo trên test với ngưỡng chọn trên val của chính nó (D8). Chi tiết ở `reports/evaluation/multi_seed/`.
+
+| Seed | AUC | Độ nhạy | Độ đặc hiệu |
+| :-- | --: | --: | --: |
+| 42 (v1.0.0) | 0,959 | 0,995 | 0,735 |
+| 0 | 0,974 | 0,997 | 0,645 |
+| 1 | 0,965 | 0,997 | 0,628 |
+| Trung bình ± độ lệch chuẩn | 0,966 ± 0,007 | 0,997 ± 0,001 | 0,670 ± 0,057 |
+
+- Độ lệch chuẩn AUC 0,007 ≤ 0,01: **đạt** tiêu chí ổn định của D6.
+- AUC và độ nhạy ổn định. Độ đặc hiệu thì không: chênh tới 0,11 giữa các seed, và cả ba đều dưới 0,75.
+- v1.0.0 có độ đặc hiệu cao nhất trong ba seed. Con số 0,735 vì vậy lạc quan hơn mức thường gặp; mức kỳ vọng khi train lại là khoảng 0,67.
+- Các seed mới chỉ dùng để đo dao động, không dùng để chọn mô hình. v1.0.0 giữ nguyên.
+- Chỉ có 3 run, nên độ lệch chuẩn ước lượng còn thô.
+
 ## Phân tích lỗi
 
 Chi tiết ở `reports/evaluation/v1.0.0/error_analysis.md`. Phân tích này chỉ để mô tả, không dùng để chỉnh mô hình.
@@ -78,7 +95,7 @@ Chi tiết ở `reports/evaluation/v1.0.0/error_analysis.md`. Phân tích này c
 ## Giới hạn
 
 - Trẻ em 1 đến 5 tuổi, một bệnh viện, một nguồn dữ liệu. Không áp dụng được cho người lớn hay bệnh viện khác.
-- Độ đặc hiệu giảm mạnh khi ảnh khác phân bố: 0,995 trên val, 0,735 trên test.
+- Độ đặc hiệu giảm mạnh khi ảnh khác phân bố: 0,995 trên val, 0,735 trên test (trung bình 3 seed: 0,670 ± 0,057).
 - Kích thước ảnh gốc gắn với nhãn trong dữ liệu. Mô hình báo nhầm nhiều hơn hẳn trên ảnh NORMAL nhỏ.
 - Không có mã bệnh nhân thật. Mã được suy ra từ tên file (D1). pHash chỉ giảm rò rỉ, không loại bỏ hoàn toàn.
 - Test có 6 cặp ảnh trùng, được tính hai lần (D2).

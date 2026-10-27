@@ -1,0 +1,96 @@
+{
+  "split": "test",
+  "runs": [
+    {
+      "run": "20261026_190912_train_seed42",
+      "seed": 42,
+      "val_auc": 0.9984080792512903,
+      "threshold": 0.23134267330169678,
+      "auc": 0.9587442472057857,
+      "sensitivity": 0.9948717948717949,
+      "specificity": 0.7350427350427351,
+      "tn": 172,
+      "fp": 62,
+      "fn": 2,
+      "tp": 388
+    },
+    {
+      "run": "20261027_231608_train_seed0",
+      "seed": 0,
+      "val_auc": 0.9972318830293136,
+      "threshold": 0.2072780430316925,
+      "auc": 0.9735590620206005,
+      "sensitivity": 0.9974358974358974,
+      "specificity": 0.6452991452991453,
+      "tn": 151,
+      "fp": 83,
+      "fn": 1,
+      "tp": 389
+    },
+    {
+      "run": "20261027_231610_train_seed1",
+      "seed": 1,
+      "val_auc": 0.999097573588311,
+      "threshold": 0.28435561060905457,
+      "auc": 0.9654394039009424,
+      "sensitivity": 0.9974358974358974,
+      "specificity": 0.6282051282051282,
+      "tn": 147,
+      "fp": 87,
+      "fn": 1,
+      "tp": 389
+    }
+  ],
+  "summary": {
+    "n_runs": 3,
+    "auc": {
+      "mean": 0.9659142377091096,
+      "std": 0.007418812900885704
+    },
+    "sensitivity": {
+      "mean": 0.9965811965811966,
+      "std": 0.0014803853056144197
+    },
+    "specificity": {
+      "mean": 0.6695156695156695,
+      "std": 0.05738813982473988
+    },
+    "acceptance": {
+      "auc_std": {
+        "max": 0.01,
+        "value": 0.007418812900885704,
+        "passed": true
+      }
+    }
+  },
+  "eval_config": {
+    "threshold": {
+      "method": "youden",
+      "target_sensitivity": 0.95
+    },
+    "bootstrap": {
+      "n_boot": 1000,
+      "confidence": 0.95,
+      "seed": 0
+    },
+    "acceptance": {
+      "auc": 0.93,
+      "sensitivity": 0.9,
+      "specificity": 0.75
+    },
+    "multi_seed": {
+      "max_auc_std": 0.01
+    }
+  },
+  "provenance": {
+    "git": {
+      "commit": "301f03de95ab45ae64f8dddb320c283ae6604f3e",
+      "dirty": false
+    },
+    "dataset": {
+      "hf_repo": "hf-vision/chest-xray-pneumonia",
+      "revision": "c1a67c18df1a52ec332ffc00418f4eaa61a9f2bc"
+    },
+    "splits_sha256": "475a0d3141e9962078edcd6a3c29ad100eed4154e9a59e4ee7227e28adfaed1d"
+  }
+}
