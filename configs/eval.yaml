@@ -14,3 +14,6 @@ acceptance:                 # D6 in docs/decisions.md; passed = point estimate >
   auc: 0.93
   sensitivity: 0.90
   specificity: 0.75
+
+multi_seed:                 # D6/D8: spread of test AUC between training seeds (cxr.evaluation.multi_seed)
+  max_auc_std: 0.01         # sample std (ddof=1) over the runs; passed = std <= value

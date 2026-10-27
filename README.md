@@ -74,6 +74,20 @@ uv run python -m cxr.evaluation.error_analysis --version v1.0.0
 This writes `reports/evaluation/v1.0.0/error_analysis.{json,md}` and the ROC, confusion matrix and
 probability histogram in `reports/figures/`.
 
+Seed stability (decision D8): train the main model with more seeds, then score every run on test at
+its own val threshold:
+
+```bash
+uv run python -m cxr.models.train --train-config configs/train.yaml --seed 0
+uv run python -m cxr.models.train --train-config configs/train.yaml --seed 1
+uv run python -m cxr.evaluation.multi_seed --runs runs/<seed42_run> runs/<seed0_run> runs/<seed1_run>
+```
+
+This checks first that the runs differ only by seed and share the same `splits.csv`, then writes
+`reports/evaluation/multi_seed/per_run.csv` and `summary.json` (mean and sample std of AUC,
+sensitivity, specificity; pass/fail on AUC std against `configs/eval.yaml`). Written once, never
+overwritten. These runs measure spread only; v1.0.0 stays the selected model.
+
 <!-- TODO: single entry point scripts/run_pipeline.py -->
 
 ## API
