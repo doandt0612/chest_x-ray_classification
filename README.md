@@ -130,6 +130,22 @@ The container runs as a non-root user. The request log is written to `/app/logs/
 container; mount it to keep it, e.g. `-v "$PWD/logs:/app/logs"` (the host folder must be
 writable by the container user).
 
+### Input monitoring evaluation
+
+Checks the `quality` block on clean and synthetically degraded images (decision D10): blur, Gaussian
+noise, darkening and JPEG compression, 4 levels each (`configs/monitor.yaml`, `degradations`;
+`src/cxr/monitoring/degrade.py`). Every variant goes through the API's `Predictor`, so the check
+and the probability are the same as `/predict`.
+
+```bash
+uv run python -m cxr.monitoring.evaluate_monitoring --version v1.0.0 --split val   # dry run, repeatable
+uv run python -m cxr.monitoring.evaluate_monitoring --version v1.0.0               # test, once
+```
+
+Writes `reports/monitoring/v1.0.0/<split>_results.csv` (one row per image x variant),
+`<split>_table.csv` (warning rate, flag rate per stat, AUC/sensitivity/specificity per kind x level)
+and `<split>_summary.json` (on test: pass/fail against D6). Test results are never overwritten.
+
 ## Directory structure
 
 See [PLAN.md](../PLAN.md#1-cấu-trúc-thư-mục).
@@ -147,7 +163,16 @@ v1.0.0 on test (624 images, threshold 0.2313 chosen on val), with bootstrap 95% 
 62 of 234 NORMAL test images are flagged as PNEUMONIA. See [docs/model_card.md](docs/model_card.md)
 for the error analysis and limitations.
 
-<!-- TODO: p50/p95 latency, monitoring validation results -->
+Input monitoring on test (D6, D10): 2.9% false alarms on clean images (≤ 5%, pass); 100% detected
+at the strongest level of blur, noise, darkening and JPEG (≥ 90%, pass). Mild levels are a gap:
+the model loses specificity before most images get a warning. Darkening ×0.7 drops specificity
+from 0.735 to 0.440 with 32% of images warned; noise std 10 drops it to 0.615 with 40% warned;
+darkening ×0.9 drops it to 0.645 with 4% warned. Sensitivity stays ≥ 0.99 at every level.
+Full table: `reports/monitoring/v1.0.0/test_table.csv`.
+
+Docker image (D11, measured as Docker Desktop shows it): 2.10 GB, over the 2 GB limit (**fail**).
+
+<!-- TODO: p50/p95 latency -->
 
 ## Model card
 
