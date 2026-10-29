@@ -112,7 +112,23 @@ Bad input gets a 4xx: 400 empty or unreadable image, 413 file over `max_upload_m
 Images are never stored. Each request appends one JSON line of stats to `logs/requests.jsonl`
 (`request_log: null` turns it off).
 
-<!-- TODO: docker build / docker run -->
+### Docker (CPU)
+
+The image (`Dockerfile`) runs the same API on CPU. It bakes in `models/v1.0.0/`,
+`data/reference/stats.json` and the two configs, so build it on a machine that has the
+registered model (`models/` is not in git). Package versions come from `uv.lock`; torch and
+torchvision use the same versions from the PyTorch CPU index instead of CUDA.
+
+```bash
+docker build -t cxr-api:v1.0.0 .
+docker run --rm -p 8000:8000 cxr-api:v1.0.0
+curl http://localhost:8000/health
+curl -F "file=@image.jpeg" http://localhost:8000/predict
+```
+
+The container runs as a non-root user. The request log is written to `/app/logs/` inside the
+container; mount it to keep it, e.g. `-v "$PWD/logs:/app/logs"` (the host folder must be
+writable by the container user).
 
 ## Directory structure
 
