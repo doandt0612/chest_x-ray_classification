@@ -1,6 +1,6 @@
 # Thẻ mô hình: phân loại X-quang ngực v1.0.0
 
-Bản đầu, 26/10/2026. Số liệu lấy từ `reports/evaluation/v1.0.0/`.
+Bản đầu 26/10/2026, cập nhật 29/10/2026 (giám sát, triển khai). Số liệu lấy từ `reports/evaluation/v1.0.0/`, `reports/monitoring/v1.0.0/` và `reports/latency/`. Dữ liệu mô tả chi tiết ở `docs/data_card.md`.
 
 ## Mục đích
 
@@ -35,7 +35,7 @@ Khoảng tin cậy 95% tính bằng bootstrap phân tầng, 1.000 vòng (D7). Ng
 
 | Chỉ số | Val | Test | Ngưỡng D6 (test) | Kết quả |
 | :-- | :-- | :-- | :-- | :-- |
-| AUC | 0,998 [0,997; 1,000] | 0,959 [0,941; 0,973] | ≥ 0,93 | Đạt |
+| AUC | 0,998 [0,996; 1,000] | 0,959 [0,941; 0,973] | ≥ 0,93 | Đạt |
 | Độ nhạy | 0,980 [0,967; 0,992] | 0,995 [0,987; 1,000] | ≥ 0,90 | Đạt |
 | Độ đặc hiệu | 0,995 [0,984; 1,000] | 0,735 [0,675; 0,791] | ≥ 0,75 | **Không đạt** |
 
@@ -92,6 +92,46 @@ Chi tiết ở `reports/evaluation/v1.0.0/error_analysis.md`. Phân tích này c
    - Một số ảnh cũng có thể bị gán nhãn sai. Chưa có bác sĩ xem lại.
    - Muốn kiểm chứng cần thí nghiệm riêng. Nếu thí nghiệm đó dẫn tới train lại, test hiện tại không còn là đánh giá độc lập cho mô hình mới (D5, D6).
 
+## Giám sát đầu vào
+
+API trả kèm mỗi dự đoán một cờ chất lượng ảnh (D9). Cờ so 5 chỉ số của ảnh với khoảng phân vị của train: độ sáng, độ tương phản, độ nét, nhiễu, độ "khối" của nén JPEG. Cờ không chặn dự đoán.
+
+Đánh giá trên 624 ảnh test, với 4 loại suy giảm nhân tạo, mỗi loại 4 mức (D10). Chi tiết ở `reports/monitoring/v1.0.0/test_table.csv`.
+
+| Tiêu chí D6 | Kết quả | |
+| :-- | :-- | :-- |
+| Cảnh báo nhầm trên ảnh sạch ≤ 5% | 2,9% | Đạt |
+| Phát hiện ở mức mạnh nhất ≥ 90% (mờ 8, nhiễu 40, tối ×0,3, JPEG 10) | 100% cả 4 loại | Đạt |
+
+Mô hình trên ảnh suy giảm (độ nhạy luôn ≥ 0,99):
+
+| Ảnh | Tỉ lệ bị cảnh báo | AUC | Độ đặc hiệu |
+| :-- | --: | --: | --: |
+| Sạch | 2,9% | 0,959 | 0,735 |
+| Tối ×0,9 | 4,2% | 0,962 | 0,645 |
+| Tối ×0,7 | 31,9% | 0,970 | 0,440 |
+| Tối ×0,3 | 100% | 0,563 | 0,000 |
+| Nhiễu 10 | 39,7% | 0,956 | 0,615 |
+| Nhiễu 40 | 100% | 0,866 | 0,111 |
+| Mờ 8 | 100% | 0,935 | 0,581 |
+| JPEG 10 | 100% | 0,947 | 0,513 |
+
+- Ảnh xấu đi thì mô hình nghiêng về PNEUMONIA: độ đặc hiệu giảm, độ nhạy giữ nguyên.
+- **Lỗ hổng ở mức nhẹ.** Tối ×0,7 làm độ đặc hiệu giảm từ 0,735 xuống 0,440, nhưng chỉ 32% ảnh bị cảnh báo. Cờ chất lượng "ok" vì vậy không đảm bảo dự đoán đáng tin.
+- AUC ở tối ×0,7 cao hơn ảnh sạch, trong khi độ đặc hiệu giảm mạnh. Thứ hạng xác suất gần như giữ nguyên, nhưng cả phân bố bị đẩy lên trên ngưỡng cố định.
+
+## Triển khai
+
+| Mục | Giá trị |
+| :-- | :-- |
+| Dạng | API FastAPI trong Docker, CPU, torch bản CPU |
+| Độ trễ `/predict` (D13) | p50 41,9 ms, p95 84,7 ms, lớn nhất 159,4 ms. Ngưỡng D6 p95 ≤ 500 ms: đạt |
+| Máy đo | AMD Ryzen 7 7840H, 16 luồng, WSL2, Docker Desktop. Gửi tuần tự 624 ảnh test |
+| Khớp với đánh giá offline | Lệch tối đa 1,19e-7 trên 624 ảnh test, đo thử trên container 29/10/2026 (D12, chưa lưu thành file báo cáo). Ngưỡng D6 < 1e-5: đạt |
+| Kích thước image | 2,10 GB theo Docker Desktop (D11). Chỉ báo cáo, không xét đạt (D12) |
+| Đầu vào lỗi | File rỗng, không phải ảnh, ảnh hỏng: 400. Quá lớn: 413. Sai định dạng: 415 |
+| Riêng tư | Không lưu ảnh. Mỗi request ghi một dòng thống kê vào `logs/requests.jsonl` |
+
 ## Giới hạn
 
 - Trẻ em 1 đến 5 tuổi, một bệnh viện, một nguồn dữ liệu. Không áp dụng được cho người lớn hay bệnh viện khác.
@@ -100,4 +140,6 @@ Chi tiết ở `reports/evaluation/v1.0.0/error_analysis.md`. Phân tích này c
 - Không có mã bệnh nhân thật. Mã được suy ra từ tên file (D1). pHash chỉ giảm rò rỉ, không loại bỏ hoàn toàn.
 - Test có 6 cặp ảnh trùng, được tính hai lần (D2).
 - Bootstrap coi mỗi ảnh là độc lập. Khoảng tin cậy không tính dao động giữa các seed train.
+- Suy giảm nhẹ (tối, nhiễu) làm độ đặc hiệu giảm trước khi cờ chất lượng bắt được. Suy giảm nhân tạo cũng không thay được ảnh lỗi thật từ máy chụp khác.
+- Độ trễ chỉ đo trên một máy cá nhân, client và server cùng máy, không có tải song song.
 - Chỉ dùng cho nghiên cứu. Không thay thế bác sĩ.

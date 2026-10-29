@@ -207,9 +207,15 @@ Latency of `/predict` (D13): Docker container on CPU (AMD Ryzen 7 7840H, 16 thre
 request at a time, 624 test images after 20 warm-up requests: p50 41.9 ms, p95 84.7 ms, max 159.4 ms
 (p95 ≤ 500 ms, pass). Report: `reports/latency/v1.0.0.json`.
 
-## Model card
+## Documentation (Vietnamese)
 
-[docs/model_card.md](docs/model_card.md)
+| Document | Content |
+| :-- | :-- |
+| [docs/model_card.md](docs/model_card.md) | Model card: purpose, results, monitoring, deployment, limitations |
+| [docs/data_card.md](docs/data_card.md) | Data card: source, license, processing, leakage risks |
+| [docs/architecture.md](docs/architecture.md) | Pipeline and API diagrams, design principles |
+| [docs/demo.md](docs/demo.md) | Step-by-step demo: Docker, clean vs degraded images, bad input, latency |
+| [docs/decisions.md](docs/decisions.md) | Decision log D1 to D13, acceptance thresholds (D6) |
 
 ## References
 
