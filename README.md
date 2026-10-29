@@ -21,6 +21,26 @@ Run every Python command through uv, e.g. `uv run pytest`.
 
 ## Re-running the full pipeline
 
+One command runs stages 1 to 7 in order (`scripts/run_pipeline.py`): download, validate, dedup,
+split, reference_stats, train (main model, `configs/train.yaml`), register, evaluate on test. It
+stops at the first failing stage and refuses to start if the run, the model version or its test
+results already exist.
+
+```bash
+uv run python scripts/run_pipeline.py --version v1.1.0                  # everything
+uv run python scripts/run_pipeline.py --version v1.1.0 --from train     # data already prepared
+```
+
+To reproduce v1.0.0 on a fresh clone (`reports/evaluation/v1.0.0/` is committed), write the new
+test results elsewhere, then compare `git diff` (data reports, `data/reference/stats.json`) and the
+two `test_metrics.json` files:
+
+```bash
+uv run python scripts/run_pipeline.py --version v1.0.0 --eval-out-dir reports/rerun/evaluation
+```
+
+The stages one by one:
+
 Data pipeline (stages 1-5, settings in `configs/data.yaml`):
 
 ```bash
@@ -87,8 +107,6 @@ This checks first that the runs differ only by seed and share the same `splits.c
 `reports/evaluation/multi_seed/per_run.csv` and `summary.json` (mean and sample std of AUC,
 sensitivity, specificity; pass/fail on AUC std against `configs/eval.yaml`). Written once, never
 overwritten. These runs measure spread only; v1.0.0 stays the selected model.
-
-<!-- TODO: single entry point scripts/run_pipeline.py -->
 
 ## API
 

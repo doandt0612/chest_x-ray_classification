@@ -140,7 +140,8 @@ def main() -> None:
     interim_dir = Path(cfg["interim_dir"])
     dedup = pd.read_csv(interim_dir / "dedup.csv")
     validation = pd.read_csv(interim_dir / "validation.csv")
-    pairs = pd.read_csv(interim_dir / "near_duplicate_pairs.csv")
+    # Explicit bool: with zero pairs pandas reads "exact" as object, and pairs[pairs["exact"]] selects columns.
+    pairs = pd.read_csv(interim_dir / "near_duplicate_pairs.csv", dtype={"exact": bool})
     splits, excluded = make_splits(dedup, validation, pairs, cfg)
 
     processed_dir = Path(cfg["processed_dir"])
