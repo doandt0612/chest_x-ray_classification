@@ -1,0 +1,24 @@
+{
+  "model_version": "v1.0.0",
+  "target": "docker cxr-api:v1.0.0",
+  "url": "http://localhost:8000",
+  "split": "test",
+  "n_warmup": 20,
+  "mode": "sequential, one image per request",
+  "n": 624,
+  "p50_ms": 41.90076800023235,
+  "p95_ms": 84.65555349969236,
+  "mean_ms": 47.685999107366904,
+  "max_ms": 159.36650000003283,
+  "acceptance": {
+    "max_p95_ms": 500,
+    "value": 84.65555349969236,
+    "passed": true
+  },
+  "machine": {
+    "cpu": "AMD Ryzen 7 7840H with Radeon 780M Graphics",
+    "logical_cpus": 16,
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "time": "2026-10-29T01:47:19+00:00"
+}

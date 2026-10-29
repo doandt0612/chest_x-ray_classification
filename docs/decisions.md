@@ -104,7 +104,6 @@ Mỗi mục ghi: bối cảnh, quyết định, lý do, hệ quả. Ngưỡng ch
 | Độ trễ p95 của `/predict` | ≤ 500 ms mỗi ảnh |
 | Chênh xác suất giữa API và dự đoán offline cùng ảnh | < 1e-5 |
 | Đầu vào hỏng hoặc sai định dạng | 100% trả lỗi 4xx, có test |
-| Kích thước Docker image | ≤ 2 GB |
 
 5. Chất lượng kỹ thuật:
 
@@ -223,4 +222,29 @@ Khi một chỉ số đúng bằng 0 hoặc 1 trên toàn bộ test (vd không �
 
 **Lý do.** Đây là con số người dùng thấy trực tiếp khi mở Docker Desktop, không cần giải thích thêm.
 
-**Hệ quả.** Cách đo được chốt **sau khi** đã thấy cả ba con số. Với cách đo này, image hiện tại 2,10 GB (2.104.404.707 byte) **không đạt** ngưỡng 2 GB. Ngưỡng 2 GB giữ nguyên. Muốn đạt phải làm image nhỏ lại, ví dụ bỏ các thư viện API không dùng.
+**Hệ quả.** Cách đo được chốt **sau khi** đã thấy cả ba con số. Với cách đo này, image hiện tại 2,10 GB (2.104.404.707 byte) vượt ngưỡng 2 GB. Tiêu chí này đã bỏ ở D12.
+
+## D12. Bỏ tiêu chí kích thước Docker image (29/10/2026)
+
+**Bối cảnh.** D6 có tiêu chí "kích thước Docker image ≤ 2 GB" trong mục "Triển khai được". Theo cách đo ở D11, image `cxr-api:v1.0.0` nặng 2,10 GB.
+
+**Quyết định.** Bỏ tiêu chí này khỏi bảng D6. Kích thước image chỉ báo cáo, không xét đạt hay không đạt.
+
+**Lý do.** Người làm đề tài quyết định kích thước image không phải yêu cầu cần đạt. Image build được và chạy đúng trên CPU (29/10/2026: `/health`, `/predict` và lỗi 4xx đều đúng; xác suất lệch tối đa 1,19e-7 so với offline trên 624 ảnh test).
+
+**Hệ quả.** Tiêu chí bị bỏ **sau khi** đã đo và thấy không đạt. Theo D6, việc này phải nêu rõ trong báo cáo. Các tiêu chí còn lại của mục "Triển khai được" giữ nguyên.
+
+## D13. Cách đo độ trễ `/predict` (29/10/2026)
+
+**Bối cảnh.** D6 đặt ngưỡng độ trễ p95 của `/predict` ≤ 500 ms mỗi ảnh, trên CPU. Cần chốt cách đo trước khi đo.
+
+**Quyết định.** `src/cxr/api/benchmark_latency.py`, cấu hình ở `configs/api.yaml`, mục `benchmark`:
+- Đo trên container Docker `cxr-api:v1.0.0` (bản triển khai thật), cấu hình mặc định, có ghi log request. Không giới hạn CPU cho container.
+- Client gửi từng request một (không song song) qua `localhost`, mỗi request một ảnh test, lần lượt theo thứ tự trong `splits.csv`, đủ 624 ảnh.
+- Trước khi đo, gửi 20 request khởi động bằng 20 ảnh test đầu tiên, không tính. Sau đó đo đủ 624 ảnh, nên 20 ảnh này được gửi hai lần. API không có bộ nhớ đệm, nên việc gửi lại không làm kết quả tốt lên.
+- Độ trễ là thời gian phía client, từ lúc gửi đến lúc nhận xong phản hồi. Gồm tải ảnh lên, giải mã, tính chỉ số chất lượng, chạy mô hình và trả JSON.
+- Báo cáo p50, p95, trung bình, lớn nhất, kèm cấu hình máy. Kết quả ghi vào `reports/latency/v1.0.0.json`. Đạt khi p95 ≤ 500 ms.
+
+**Lý do.** Đo trên container vì đó là thứ được bàn giao. Gửi tuần tự để đo độ trễ của một ảnh, đúng như ngưỡng "mỗi ảnh" trong D6, không đo thông lượng khi tải cao. Dùng toàn bộ test để p95 dựa trên đủ nhiều mẫu và gồm cả ảnh lớn nhất.
+
+**Giới hạn.** Kết quả phụ thuộc máy đo (máy cá nhân, WSL2, Docker Desktop). Client và server chạy cùng máy nên không tính độ trễ mạng.
