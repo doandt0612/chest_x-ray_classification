@@ -92,7 +92,43 @@ overwritten. These runs measure spread only; v1.0.0 stays the selected model.
 
 ## API
 
-<!-- TODO: docker build / docker run, example calls to /health and /predict -->
+FastAPI app in `src/cxr/api/`, settings in `configs/api.yaml` (another file via `CXR_API_CONFIG`).
+The registered model (`models/v1.0.0/`) is loaded once at startup.
+
+```bash
+uv run uvicorn cxr.api.main:create_app_from_env --factory --host 0.0.0.0 --port 8000
+curl http://localhost:8000/health                       # {"status": "ok", "model_version": "v1.0.0"}
+curl -F "file=@image.jpeg" http://localhost:8000/predict
+```
+
+`/predict` returns `label`, `prob_pneumonia`, the decision `threshold` (chosen on val), `model_version`,
+a `quality` block and a "research use only" disclaimer. `quality` compares the image with the
+train reference (`data/reference/stats.json`) on brightness, contrast, blur, noise and JPEG
+blockiness (`configs/monitor.yaml`, decision D9); `status` is `warning` when any stat is out of
+range. A warning never blocks the prediction.
+
+Bad input gets a 4xx: 400 empty or unreadable image, 413 file over `max_upload_mb` or image over
+`max_pixels`, 415 format other than JPEG/PNG or mode other than 8-bit gray/RGB, 422 no `file` field.
+Images are never stored. Each request appends one JSON line of stats to `logs/requests.jsonl`
+(`request_log: null` turns it off).
+
+### Docker (CPU)
+
+The image (`Dockerfile`) runs the same API on CPU. It bakes in `models/v1.0.0/`,
+`data/reference/stats.json` and the two configs, so build it on a machine that has the
+registered model (`models/` is not in git). Package versions come from `uv.lock`; torch and
+torchvision use the same versions from the PyTorch CPU index instead of CUDA.
+
+```bash
+docker build -t cxr-api:v1.0.0 .
+docker run --rm -p 8000:8000 cxr-api:v1.0.0
+curl http://localhost:8000/health
+curl -F "file=@image.jpeg" http://localhost:8000/predict
+```
+
+The container runs as a non-root user. The request log is written to `/app/logs/` inside the
+container; mount it to keep it, e.g. `-v "$PWD/logs:/app/logs"` (the host folder must be
+writable by the container user).
 
 ## Directory structure
 

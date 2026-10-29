@@ -166,3 +166,29 @@ Khi một chỉ số đúng bằng 0 hoặc 1 trên toàn bộ test (vd không �
 **Lý do.** Mỗi seed đi đúng quy trình như v1.0.0, nên độ lệch chỉ phản ánh dao động do seed. Code huấn luyện, cấu hình và `splits.csv` giống nhau giữa ba run (đã so `git diff ad0ab9d eb7c355` và hash `splits.csv`). Độ lệch chuẩn mẫu là cách tính thông thường khi chỉ có vài lần chạy.
 
 **Hệ quả.** Các seed mới không dùng để chọn mô hình. v1.0.0 giữ nguyên, kể cả khi một seed khác có AUC test cao hơn. Với 3 run, độ lệch chuẩn ước lượng còn rất thô; cần nêu điều này trong báo cáo.
+
+## D9. Chỉ số và ngưỡng giám sát chất lượng ảnh đầu vào (27/10/2026)
+
+**Bối cảnh.** API phải trả cờ chất lượng ảnh. D6 yêu cầu báo nhầm ≤ 5% trên ảnh test sạch và phát hiện ≥ 90% ở mức suy giảm mạnh nhất của mỗi loại (mờ, nhiễu, tối, nén JPEG). Ngưỡng chọn trên val, chưa nhìn test.
+
+**Quan sát (val, 704 ảnh).** Ba chỉ số cũ (độ sáng, tương phản, độ mờ) đo trên ảnh 224×224 phát hiện mờ và tối 100%, nhưng nhiễu (độ lệch chuẩn 40) chỉ 42% và JPEG chất lượng 5 chỉ 2%. Thu nhỏ khoảng 5 lần làm trung bình hóa nhiễu và xóa khối 8×8 của JPEG. Kích thước ảnh gốc báo nhầm nhiều (chiều cao một mình 2,1%) và gắn với nhãn.
+
+**Quyết định.**
+- Thêm 2 chỉ số vào `src/cxr/monitoring/image_stats.py`: `noise` (ước lượng nhiễu Immerkær, trên ảnh 224×224) và `blockiness` (tỉ lệ chênh cường độ tại biên khối 8 px so với chỗ khác, trên ảnh gốc). Tính lại `data/reference/stats.json`; các chỉ số cũ không đổi.
+- `src/cxr/monitoring/drift.py` kiểm 5 chỉ số, mỗi chỉ số theo hướng suy giảm đẩy nó đi. Khoảng là phân vị của train, cấu hình ở `configs/monitor.yaml`:
+
+| Chỉ số | Thấp | Cao |
+| :-- | :-- | :-- |
+| Độ sáng | p0,5 | p99,5 |
+| Tương phản | p0,5 | p99,5 |
+| Độ mờ | p0,5 | không kiểm |
+| `noise` | không kiểm | p99,5 |
+| `blockiness` | không kiểm | p99,5 |
+
+- Không kiểm kích thước ảnh. Một chỉ số ra ngoài khoảng thì ảnh bị "cảnh báo". Cảnh báo không chặn dự đoán.
+
+**Kết quả hiệu chỉnh trên val.** Báo nhầm 3,55% (từng chỉ số 0,4% đến 1,0%). Trên 60 ảnh val suy giảm mạnh (mờ bán kính 8, nhiễu 40, tối ×0,3, JPEG chất lượng 10): phát hiện 100% mỗi loại.
+
+**Lý do.** Kiểm một phía giảm báo nhầm cộng dồn mà không mất khả năng phát hiện. `blockiness` chỉ kiểm phía cao vì ảnh train vốn là JPEG (trung vị 1,61); ảnh PNG cho khoảng 1,0, không phải lỗi.
+
+**Giới hạn.** Test khác phân bố với train, nên báo nhầm trên test có thể cao hơn 3,55%; lề còn 1,45 điểm. Kết quả chính thức đo trên test ở giai đoạn 6, với các mức suy giảm chốt trước trong `degrade.py`. Hiệu chỉnh trên val dùng một script thăm dò, chưa nằm trong repo.

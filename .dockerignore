@@ -1,0 +1,11 @@
+# Allow-list: send only what the Dockerfile copies (data/, runs/, .venv/ are several GB).
+*
+!pyproject.toml
+!uv.lock
+!src/
+!configs/api.yaml
+!configs/monitor.yaml
+!data/reference/stats.json
+!models/v1.0.0/
+**/__pycache__
+**/*.egg-info

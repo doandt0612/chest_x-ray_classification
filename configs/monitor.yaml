@@ -1,0 +1,12 @@
+# Input quality monitoring (src/cxr/monitoring/drift.py). See D9 in docs/decisions.md.
+
+reference: data/reference/stats.json   # train-only quality stats (cxr.data.reference_stats)
+
+# stat: [low, high] = quantile keys of the train reference; outside -> warning. null = side not checked.
+# Each stat is checked only in the direction a degradation pushes it, to keep false alarms low.
+checks:
+  brightness: [p0.5, p99.5]   # too dark / overexposed
+  contrast: [p0.5, p99.5]     # washed out / harsh
+  blur: [p0.5, null]          # variance of Laplacian drops when blurred
+  noise: [null, p99.5]        # Immerkaer noise estimate rises with noise
+  blockiness: [null, p99.5]   # 8x8 JPEG block edges rise with strong compression

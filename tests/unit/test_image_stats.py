@@ -1,7 +1,15 @@
+import io
+
 import numpy as np
 from PIL import Image, ImageFilter
 
-from cxr.monitoring.image_stats import STAT_NAMES, image_stats, laplacian_variance
+from cxr.monitoring.image_stats import (
+    STAT_NAMES,
+    blockiness,
+    image_stats,
+    laplacian_variance,
+    noise_sigma,
+)
 
 IMAGE_CFG = {"size": 224, "resize": "squash"}
 
@@ -52,3 +60,38 @@ def test_stats_identical_for_rgb_storage():
 def test_laplacian_of_linear_ramp_is_zero():
     ramp = np.tile(np.arange(50, dtype=np.float64), (50, 1))
     assert laplacian_variance(ramp) == 0
+
+
+def test_noise_sigma_recovers_gaussian_noise_level():
+    # Immerkaer's estimator is unbiased for Gaussian noise on a flat image.
+    rng = np.random.default_rng(0)
+    flat = np.full((400, 400), 0.5)
+    assert noise_sigma(flat) == 0
+    assert abs(noise_sigma(flat + rng.normal(0, 0.02, flat.shape)) - 0.02) < 0.001
+
+
+def _smooth_gradient(w=640, h=480):
+    x = np.linspace(0, 1, w)[None, :] * np.linspace(0.3, 1, h)[:, None]
+    return Image.fromarray((x * 200 + 20).astype(np.uint8))
+
+
+def _jpeg(img, quality):
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=quality)
+    buf.seek(0)
+    return Image.open(buf)
+
+
+def test_blockiness_near_one_without_jpeg_and_high_with_strong_jpeg():
+    rng = np.random.default_rng(0)
+    noisy = np.asarray(_smooth_gradient(), dtype=np.float64) + rng.normal(0, 2, (480, 640))
+    plain = np.clip(noisy, 0, 255).astype(np.uint8)
+    assert abs(blockiness(plain) - 1.0) < 0.05
+    assert blockiness(np.full((50, 50), 7)) == 1.0  # flat: no edges at all
+    assert blockiness(np.asarray(_jpeg(_smooth_gradient(), 5))) > 2
+
+
+def test_noise_and_blockiness_in_image_stats():
+    img = _smooth_gradient()
+    s, s_jpeg = image_stats(img, IMAGE_CFG), image_stats(_jpeg(img, 5), IMAGE_CFG)
+    assert s_jpeg["blockiness"] > s["blockiness"]

@@ -48,3 +48,6 @@ Thumbs.db
 *.swp
 
 docs/*.pdf
+
+# API request log (aggregate stats only)
+logs/
