@@ -10,3 +10,16 @@ checks:
   blur: [p0.5, null]          # variance of Laplacian drops when blurred
   noise: [null, p99.5]        # Immerkaer noise estimate rises with noise
   blockiness: [null, p99.5]   # 8x8 JPEG block edges rise with strong compression
+
+# Synthetic degradations for the monitoring evaluation (cxr.monitoring.degrade, D10).
+# Levels go from mild to strongest; the last level of each kind is checked against `acceptance`.
+degradations:
+  blur: [1, 2, 4, 8]           # Gaussian blur radius, px on the original image
+  noise: [5, 10, 20, 40]       # Gaussian noise std, gray levels 0-255 on the original image
+  dark: [0.9, 0.7, 0.5, 0.3]   # pixel values multiplied by this factor
+  jpeg: [50, 30, 20, 10]       # JPEG quality
+noise_seed: 0
+
+acceptance:                    # D6; measured on test by cxr.monitoring.evaluate_monitoring
+  max_false_alarm: 0.05        # warnings on clean images
+  min_detection: 0.90          # warnings at the strongest level of each kind

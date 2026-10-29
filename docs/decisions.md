@@ -192,3 +192,35 @@ Khi một chỉ số đúng bằng 0 hoặc 1 trên toàn bộ test (vd không �
 **Lý do.** Kiểm một phía giảm báo nhầm cộng dồn mà không mất khả năng phát hiện. `blockiness` chỉ kiểm phía cao vì ảnh train vốn là JPEG (trung vị 1,61); ảnh PNG cho khoảng 1,0, không phải lỗi.
 
 **Giới hạn.** Test khác phân bố với train, nên báo nhầm trên test có thể cao hơn 3,55%; lề còn 1,45 điểm. Kết quả chính thức đo trên test ở giai đoạn 6, với các mức suy giảm chốt trước trong `degrade.py`. Hiệu chỉnh trên val dùng một script thăm dò, chưa nằm trong repo.
+
+## D10. Các mức suy giảm nhân tạo để đánh giá giám sát (29/10/2026)
+
+**Bối cảnh.** D6 yêu cầu báo nhầm ≤ 5% trên ảnh test sạch và phát hiện ≥ 90% ở mức suy giảm mạnh nhất của mỗi loại. D9 đã chốt chỉ số và ngưỡng giám sát trên val. Các mức suy giảm phải chốt trước khi đo trên test.
+
+**Quyết định.** `src/cxr/monitoring/degrade.py`, cấu hình ở `configs/monitor.yaml`, mục `degradations`. Mỗi loại 4 mức, từ nhẹ đến mạnh. Mức cuối là mức mạnh nhất, dùng để xét đạt hoặc không đạt:
+
+| Loại | Tham số | Các mức |
+| :-- | :-- | :-- |
+| Mờ | bán kính Gaussian (px, ảnh gốc) | 1, 2, 4, 8 |
+| Nhiễu | độ lệch chuẩn nhiễu Gaussian (mức xám 0 đến 255, ảnh gốc) | 5, 10, 20, 40 |
+| Tối | hệ số nhân giá trị điểm ảnh | 0,9; 0,7; 0,5; 0,3 |
+| Nén JPEG | chất lượng JPEG | 50, 30, 20, 10 |
+
+- Suy giảm áp lên ảnh gốc ở dạng xám 8 bit, trước mọi bước thu nhỏ, giống ảnh thật gửi tới API.
+- Nhiễu có seed theo (`noise_seed`, thứ tự ảnh), nên chạy lại cho cùng kết quả.
+- `src/cxr/monitoring/evaluate_monitoring.py` đưa mỗi ảnh qua `Predictor` của API, nên kiểm tra chất lượng và xác suất giống hệt `/predict`. Kết quả ghi vào `reports/monitoring/v1.0.0/`. Test chỉ đo một lần, không ghi đè.
+- Kèm theo, đo AUC, độ nhạy, độ đặc hiệu của mô hình trên từng mức. Các số này chỉ để báo cáo, không có ngưỡng.
+
+**Lý do.** Mức mạnh nhất trùng với mức đã dùng khi hiệu chỉnh trên val ở D9 (mờ 8, nhiễu 40, tối 0,3, JPEG chất lượng 10). Con số "JPEG chất lượng 5" trong phần quan sát của D9 là phép thử với ba chỉ số cũ, không phải mức hiệu chỉnh. Các mức nhẹ hơn cho thấy giám sát bắt đầu phát hiện từ đâu.
+
+**Giới hạn.** Ảnh mờ, nhiễu, tối được đưa thẳng vào `Predictor` dưới dạng ảnh trong bộ nhớ, không mã hóa lại thành file. Một ảnh thật gửi lên dạng JPEG sẽ có thêm một lần nén.
+
+## D11. Cách đo kích thước Docker image (29/10/2026)
+
+**Bối cảnh.** D6 đặt ngưỡng "kích thước Docker image ≤ 2 GB" nhưng không nói cách đo. Image `cxr-api:v1.0.0` có ba con số: 1,5 GB hệ thống file giải nén (`du -sx /` trong container), 486 MB nội dung nén, 2,1 GB theo cột DISK USAGE của Docker Desktop (`docker image ls`, gồm cả bản nén và bản giải nén).
+
+**Quyết định.** Đo theo con số Docker Desktop hiển thị: cột DISK USAGE của `docker image ls`, tương đương `docker image inspect --format '{{.Size}}'`. Đơn vị theo cách Docker hiển thị: 1 GB = 10⁹ byte (không phải 1 GiB = 2³⁰ byte).
+
+**Lý do.** Đây là con số người dùng thấy trực tiếp khi mở Docker Desktop, không cần giải thích thêm.
+
+**Hệ quả.** Cách đo được chốt **sau khi** đã thấy cả ba con số. Với cách đo này, image hiện tại 2,10 GB (2.104.404.707 byte) **không đạt** ngưỡng 2 GB. Ngưỡng 2 GB giữ nguyên. Muốn đạt phải làm image nhỏ lại, ví dụ bỏ các thư viện API không dùng.

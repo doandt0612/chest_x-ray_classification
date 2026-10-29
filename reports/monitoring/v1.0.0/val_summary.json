@@ -1,0 +1,313 @@
+{
+  "version": "v1.0.0",
+  "split": "val",
+  "n_images": 704,
+  "threshold": 0.23134267330169678,
+  "table": [
+    {
+      "kind": "clean",
+      "level": null,
+      "n": 704,
+      "warning_rate": 0.0355113636,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0042613636,
+      "flag_noise": 0.0099431818,
+      "flag_blockiness": 0.0085227273,
+      "auc": 0.9984080793,
+      "sensitivity": 0.9804305284,
+      "specificity": 0.9948186528
+    },
+    {
+      "kind": "blur",
+      "level": 1.0,
+      "n": 704,
+      "warning_rate": 0.0355113636,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0213068182,
+      "flag_noise": 0.0014204545,
+      "flag_blockiness": 0.0,
+      "auc": 0.9984384981,
+      "sensitivity": 0.9804305284,
+      "specificity": 0.9948186528
+    },
+    {
+      "kind": "blur",
+      "level": 2.0,
+      "n": 704,
+      "warning_rate": 0.3025568182,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.2926136364,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0,
+      "auc": 0.9983472415,
+      "sensitivity": 0.9823874755,
+      "specificity": 0.9896373057
+    },
+    {
+      "kind": "blur",
+      "level": 4.0,
+      "n": 704,
+      "warning_rate": 0.7741477273,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.7727272727,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0,
+      "auc": 0.9976678868,
+      "sensitivity": 0.9784735812,
+      "specificity": 0.9689119171
+    },
+    {
+      "kind": "blur",
+      "level": 8.0,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0042613636,
+      "flag_blur": 1.0,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0,
+      "auc": 0.9922330491,
+      "sensitivity": 0.9941291585,
+      "specificity": 0.9015544041
+    },
+    {
+      "kind": "noise",
+      "level": 5.0,
+      "n": 704,
+      "warning_rate": 0.0355113636,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0028409091,
+      "flag_noise": 0.0184659091,
+      "flag_blockiness": 0.0,
+      "auc": 0.9983168226,
+      "sensitivity": 0.9823874755,
+      "specificity": 0.9896373057
+    },
+    {
+      "kind": "noise",
+      "level": 10.0,
+      "n": 704,
+      "warning_rate": 0.3707386364,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0014204545,
+      "flag_noise": 0.3579545455,
+      "flag_blockiness": 0.0,
+      "auc": 0.9978706793,
+      "sensitivity": 0.9843444227,
+      "specificity": 0.9740932642
+    },
+    {
+      "kind": "noise",
+      "level": 20.0,
+      "n": 704,
+      "warning_rate": 0.9772727273,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0028409091,
+      "flag_blur": 0.0,
+      "flag_noise": 0.9772727273,
+      "flag_blockiness": 0.0,
+      "auc": 0.9963497359,
+      "sensitivity": 0.9960861057,
+      "specificity": 0.896373057
+    },
+    {
+      "kind": "noise",
+      "level": 40.0,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 0.0071022727,
+      "flag_contrast": 0.0014204545,
+      "flag_blur": 0.0,
+      "flag_noise": 1.0,
+      "flag_blockiness": 0.0,
+      "auc": 0.9895054906,
+      "sensitivity": 1.0,
+      "specificity": 0.4611398964
+    },
+    {
+      "kind": "dark",
+      "level": 0.9,
+      "n": 704,
+      "warning_rate": 0.0326704545,
+      "flag_brightness": 0.0127840909,
+      "flag_contrast": 0.0014204545,
+      "flag_blur": 0.0142045455,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0085227273,
+      "auc": 0.9982661245,
+      "sensitivity": 0.9843444227,
+      "specificity": 0.9844559585
+    },
+    {
+      "kind": "dark",
+      "level": 0.7,
+      "n": 704,
+      "warning_rate": 0.3664772727,
+      "flag_brightness": 0.171875,
+      "flag_contrast": 0.0994318182,
+      "flag_blur": 0.2130681818,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0085227273,
+      "auc": 0.9954878679,
+      "sensitivity": 0.9960861057,
+      "specificity": 0.8601036269
+    },
+    {
+      "kind": "dark",
+      "level": 0.5,
+      "n": 704,
+      "warning_rate": 0.9957386364,
+      "flag_brightness": 0.9161931818,
+      "flag_contrast": 0.7727272727,
+      "flag_blur": 0.7528409091,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0085227273,
+      "auc": 0.9774393397,
+      "sensitivity": 1.0,
+      "specificity": 0.2590673575
+    },
+    {
+      "kind": "dark",
+      "level": 0.3,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 1.0,
+      "flag_contrast": 1.0,
+      "flag_blur": 1.0,
+      "flag_noise": 0.0,
+      "flag_blockiness": 0.0085227273,
+      "auc": 0.6008081279,
+      "sensitivity": 1.0,
+      "specificity": 0.0
+    },
+    {
+      "kind": "jpeg",
+      "level": 50.0,
+      "n": 704,
+      "warning_rate": 0.359375,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0071022727,
+      "flag_blur": 0.0028409091,
+      "flag_noise": 0.0184659091,
+      "flag_blockiness": 0.3338068182,
+      "auc": 0.9986210113,
+      "sensitivity": 0.9843444227,
+      "specificity": 0.9896373057
+    },
+    {
+      "kind": "jpeg",
+      "level": 30.0,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0042613636,
+      "flag_noise": 0.0127840909,
+      "flag_blockiness": 1.0,
+      "auc": 0.9983573811,
+      "sensitivity": 0.9843444227,
+      "specificity": 0.9844559585
+    },
+    {
+      "kind": "jpeg",
+      "level": 20.0,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0042613636,
+      "flag_noise": 0.0113636364,
+      "flag_blockiness": 1.0,
+      "auc": 0.9981038906,
+      "sensitivity": 0.9843444227,
+      "specificity": 0.9844559585
+    },
+    {
+      "kind": "jpeg",
+      "level": 10.0,
+      "n": 704,
+      "warning_rate": 1.0,
+      "flag_brightness": 0.0099431818,
+      "flag_contrast": 0.0056818182,
+      "flag_blur": 0.0014204545,
+      "flag_noise": 0.0142045455,
+      "flag_blockiness": 1.0,
+      "auc": 0.9976476076,
+      "sensitivity": 0.9960861057,
+      "specificity": 0.9430051813
+    }
+  ],
+  "monitor_config": {
+    "reference": "data/reference/stats.json",
+    "checks": {
+      "brightness": [
+        "p0.5",
+        "p99.5"
+      ],
+      "contrast": [
+        "p0.5",
+        "p99.5"
+      ],
+      "blur": [
+        "p0.5",
+        null
+      ],
+      "noise": [
+        null,
+        "p99.5"
+      ],
+      "blockiness": [
+        null,
+        "p99.5"
+      ]
+    },
+    "degradations": {
+      "blur": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "noise": [
+        5,
+        10,
+        20,
+        40
+      ],
+      "dark": [
+        0.9,
+        0.7,
+        0.5,
+        0.3
+      ],
+      "jpeg": [
+        50,
+        30,
+        20,
+        10
+      ]
+    },
+    "noise_seed": 0,
+    "acceptance": {
+      "max_false_alarm": 0.05,
+      "min_detection": 0.9
+    }
+  },
+  "provenance": {
+    "git": {
+      "commit": "20791b38fada1c5ba386b34ec612d386a77713f1",
+      "dirty": true
+    },
+    "dataset": {
+      "hf_repo": "hf-vision/chest-xray-pneumonia",
+      "revision": "c1a67c18df1a52ec332ffc00418f4eaa61a9f2bc"
+    },
+    "splits_sha256": "475a0d3141e9962078edcd6a3c29ad100eed4154e9a59e4ee7227e28adfaed1d"
+  }
+}
