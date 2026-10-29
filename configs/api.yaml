@@ -9,3 +9,7 @@ allowed_modes: [L, RGB]               # 8-bit gray or RGB, as in training; e.g. 
 max_pixels: 16000000                  # width x height above this -> 413 (training max ~7.8 MP; bounds memory per request)
 
 request_log: logs/requests.jsonl      # one JSON line of stats per request, never the image; null = off
+
+benchmark:                            # D13: latency of /predict (cxr.api.benchmark_latency)
+  n_warmup: 20                        # first requests, not counted
+  max_p95_ms: 500                     # D6 acceptance

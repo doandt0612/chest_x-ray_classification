@@ -146,6 +146,19 @@ Writes `reports/monitoring/v1.0.0/<split>_results.csv` (one row per image x vari
 `<split>_table.csv` (warning rate, flag rate per stat, AUC/sensitivity/specificity per kind x level)
 and `<split>_summary.json` (on test: pass/fail against D6). Test results are never overwritten.
 
+### Latency benchmark
+
+Measures `/predict` on an already running server, sequentially, one test image per request
+(decision D13; settings in `configs/api.yaml`, `benchmark`).
+
+```bash
+docker run --rm -d -p 8000:8000 --name cxr-api cxr-api:v1.0.0
+uv run python -m cxr.api.benchmark_latency --url http://localhost:8000
+docker stop cxr-api
+```
+
+Writes `reports/latency/v1.0.0.json` (p50, p95, mean, max in ms, machine info, pass/fail).
+
 ## Directory structure
 
 See [PLAN.md](../PLAN.md#1-cấu-trúc-thư-mục).
@@ -170,9 +183,11 @@ from 0.735 to 0.440 with 32% of images warned; noise std 10 drops it to 0.615 wi
 darkening ×0.9 drops it to 0.645 with 4% warned. Sensitivity stays ≥ 0.99 at every level.
 Full table: `reports/monitoring/v1.0.0/test_table.csv`.
 
-Docker image (D11, measured as Docker Desktop shows it): 2.10 GB, over the 2 GB limit (**fail**).
+Docker image: 2.10 GB as Docker Desktop shows it (D11). Size is reported only, not a requirement (D12).
 
-<!-- TODO: p50/p95 latency -->
+Latency of `/predict` (D13): Docker container on CPU (AMD Ryzen 7 7840H, 16 threads, WSL2), one
+request at a time, 624 test images after 20 warm-up requests: p50 41.9 ms, p95 84.7 ms, max 159.4 ms
+(p95 ≤ 500 ms, pass). Report: `reports/latency/v1.0.0.json`.
 
 ## Model card
 
